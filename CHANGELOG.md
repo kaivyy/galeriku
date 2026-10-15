@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 9: Pre-Production Hardening (Completed)
+
+#### Added - Load Testing, Security Audit & Launch Readiness
+- Added the 2000-photo load test in [`backend/test/security/load_test_2000_photos_test.go`](file:///root/galeriku/backend/test/security/load_test_2000_photos_test.go): 50 concurrent photographers initiate batches through the real router; all accepted, zero lost updates under quota-row lock contention.
+- Added the Phase 9 verification report in [`docs/audits/PHASE_9_PRE_PRODUCTION_REPORT.md`](file:///root/galeriku/docs/audits/PHASE_9_PRE_PRODUCTION_REPORT.md) covering the STRIDE audit evidence, the DR drill results, and the go-live runbook (WAL PITR, TLS, WAF) for production infrastructure.
+
+### Phase 8: Frontend Contract Layer (Completed)
+
+#### Added - Typed API Contracts & Client
+- Extended [`web/src/types/api.ts`](file:///root/galeriku/web/src/types/api.ts) with every enum from Domains 01 through 06 and the full cross-domain error catalog.
+- Added [`web/src/client.ts`](file:///root/galeriku/web/src/client.ts): a typed `GalerikuClient` with bearer-token injection, `Idempotency-Key` propagation, and `ApiError` conversion preserving backend error codes.
+
+### Phase 7: Ledger, Settlements & Refunds (Completed)
+
+#### Added - Double-Entry Engine & Revenue Split
+- Implemented the double-entry engine in [`backend/internal/repository/ledger_repository.go`](file:///root/galeriku/backend/internal/repository/ledger_repository.go) with application-level and database-level balance invariants.
+- Implemented the deterministic 15/15/70 revenue split and T+7 settlements in [`backend/internal/usecase/finance_usecase.go`](file:///root/galeriku/backend/internal/usecase/finance_usecase.go), with SLA-breach refunds reversing all three parties atomically.
+- Migration [`000005_ledger_account_uniqueness.up.sql`](file:///root/galeriku/migrations/000005_ledger_account_uniqueness.up.sql) deduplicates `ledger_accounts` and adds a unique identity index.
+
+### Phase 6: Payment, Fulfillment & Downloads (Completed)
+
+#### Added - Payment Gateway, Webhooks & Secure Downloads
+- Implemented payment initiation, signature-verified webhooks, time-limited download grants, vault-streamed downloads with audit events, and 48-hour SLA fulfillment tracking in [`backend/internal/usecase/payment_usecase.go`](file:///root/galeriku/backend/internal/usecase/payment_usecase.go).
+
+### Phase 5: Discovery & Protected Checkout (Completed)
+
+#### Added - BIB Search, Cart & Idempotent Orders
+- Implemented public BIB search, the idempotent cart, HMAC-protected BIB checkout verification (DEC-Q02), and `Idempotency-Key`-based order creation in [`backend/internal/usecase/discovery_usecase.go`](file:///root/galeriku/backend/internal/usecase/discovery_usecase.go).
+- Migration [`000004_photo_prices.up.sql`](file:///root/galeriku/migrations/000004_photo_prices.up.sql) adds the pricing catalog and order idempotency tables.
+
+### Phase 4: Python AI Worker (Completed)
+
+#### Added - Face Extraction, Qdrant Indexing, BIB OCR & Watermarking
+- Implemented the RabbitMQ consumer with a DB-polling fallback, the 512-dim face extraction protocol, Qdrant indexing with `{photo_id, subject_id, bbox}` payloads, BIB OCR, and the destructive pixel micro-watermark (DEC-Q01) in [`ai-worker/`](file:///root/galeriku/ai-worker/).
+
 ### Phase 3: FotoTree & Direct-to-S3 Multipart Upload (Completed)
 
 #### Added - Task 3.1: FotoTree Hierarchy Management
