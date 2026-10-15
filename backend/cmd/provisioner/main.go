@@ -108,8 +108,10 @@ func main() {
 		secretKey = "galeriku_minio_secret"
 	}
 
+	useSSL := os.Getenv("S3_USE_SSL") == "true"
+
 	log.Printf("[PROVISIONER] Connecting to MinIO at %s...", endpoint)
-	if err := EnsureBucketsExist(context.Background(), endpoint, accessKey, secretKey, false); err != nil {
+	if err := EnsureBucketsExist(context.Background(), endpoint, accessKey, secretKey, useSSL); err != nil {
 		log.Fatalf("[PROVISIONER] Failed: %v", err)
 	}
 	log.Println("[PROVISIONER] S3 Buckets provisioned successfully.")
