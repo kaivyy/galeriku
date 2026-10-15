@@ -1,5 +1,5 @@
 /**
- * Full API contract types for Galeriku — Domains 01 through 07.
+ * Full API contract types for Galeriku, Domains 01 through 07.
  * Mirror of GALERIKU_OPENAPI_v1_DRAFT.yaml and the Go domain constants.
  * Drift is caught by web/test/contracts.test.ts.
  */
