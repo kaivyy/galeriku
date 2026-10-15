@@ -48,6 +48,9 @@ func TestHealthEndpointResponse(t *testing.T) {
 	if resp.Meta.RequestID == "" || !strings.HasPrefix(resp.Meta.RequestID, "req_") {
 		t.Errorf("expected auto-generated request ID with prefix 'req_', got '%s'", resp.Meta.RequestID)
 	}
+	if rec.Header().Get("X-Request-ID") != resp.Meta.RequestID {
+		t.Errorf("expected response header X-Request-ID '%s', got '%s'", resp.Meta.RequestID, rec.Header().Get("X-Request-ID"))
+	}
 }
 
 func TestHealthEndpoint_CustomRequestID(t *testing.T) {
@@ -70,6 +73,9 @@ func TestHealthEndpoint_CustomRequestID(t *testing.T) {
 
 	if resp.Meta.RequestID != "custom-trace-id-999" {
 		t.Errorf("expected request_id 'custom-trace-id-999', got '%s'", resp.Meta.RequestID)
+	}
+	if rec.Header().Get("X-Request-ID") != "custom-trace-id-999" {
+		t.Errorf("expected response header X-Request-ID 'custom-trace-id-999', got '%s'", rec.Header().Get("X-Request-ID"))
 	}
 }
 

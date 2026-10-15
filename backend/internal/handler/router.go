@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/galeriku/core/internal/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -33,16 +33,13 @@ type ErrorBody struct {
 	RequestID string      `json:"request_id"`
 }
 
-func SetupRoutes(pool *pgxpool.Pool) *http.ServeMux {
+func SetupRoutes(pool *pgxpool.Pool) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /api/v1/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		reqID := r.Header.Get("X-Request-ID")
-		if reqID == "" {
-			reqID = "req_" + uuid.New().String()[:12]
-		}
+		reqID := middleware.GetRequestID(r.Context())
 
 		overallStatus := "UP"
 		httpCode := http.StatusOK
@@ -78,5 +75,6 @@ func SetupRoutes(pool *pgxpool.Pool) *http.ServeMux {
 		json.NewEncoder(w).Encode(resp)
 	})
 
-	return mux
+	return middleware.CorrelationIDMiddleware(mux)
 }
+
