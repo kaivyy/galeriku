@@ -1,16 +1,16 @@
-# Graph Report - galeriku  (2026-10-15)
+# Graph Report - galeriku  (2026-10-16)
 
 ## Corpus Check
-- 117 files · ~188,116 words
+- 138 files · ~208,016 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1992 nodes · 2941 edges · 119 communities (117 shown, 2 thin omitted)
-- Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 274 edges (avg confidence: 0.8)
+- 2244 nodes · 3699 edges · 141 communities (139 shown, 2 thin omitted)
+- Extraction: 90% EXTRACTED · 10% INFERRED · 0% AMBIGUOUS · INFERRED: 382 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `7c215d95`
+- Built from commit: `edca98f9`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -131,35 +131,57 @@
 - SetupRoutes
 - validate_openapi.py
 - HostBankAccount
+- PostgresUploadRepository
+- S3Service
+- mockUserRepo
+- MultipartUploadUsecase
+- newUploadTestEnv
+- GetRequestID
+- main
+- RabbitPublisher
+- PostgresAuthRepository
+- NewPostgresUserRepository
+- successData
+- newMultipartTestEnv
+- HashPassword
+- NewAuthUsecase
+- newFinalizeTestEnv
+- newFotoTreeTestEnv
+- newInvitationTestEnv
+- MultipartUploadHandler
+- PostgresMultipartRepository
+- NewPostgresTenantRepository
+- NewS3Service
+- BatchFinalizeUsecase
 
 ## God Nodes (most connected - your core abstractions)
-1. `newSuiteEnv()` - 30 edges
-2. `main()` - 24 edges
-3. `GenerateAccessToken()` - 23 edges
-4. `6. SPESIFIKASI LAYAR KANAL MOBILE (FLUTTER)` - 22 edges
-5. `6. SPESIFIKASI LAYAR KANAL MOBILE (FLUTTER)` - 22 edges
-6. `newMembershipTestEnv()` - 20 edges
-7. `AuthHandler` - 19 edges
-8. `AuthUsecase` - 19 edges
-9. `8. Analisis dan Resolusi 18 Keputusan Terbuka (OPEN-01 s/d OPEN-18)` - 19 edges
-10. `8. Analisis dan Resolusi 18 Keputusan Terbuka (OPEN-01 s/d OPEN-18)` - 19 edges
+1. `main()` - 36 edges
+2. `newSuiteEnv()` - 30 edges
+3. `GenerateAccessToken()` - 27 edges
+4. `AuthHandler` - 23 edges
+5. `SetupRoutesWithFinalize()` - 23 edges
+6. `GetRequestID()` - 23 edges
+7. `6. SPESIFIKASI LAYAR KANAL MOBILE (FLUTTER)` - 22 edges
+8. `6. SPESIFIKASI LAYAR KANAL MOBILE (FLUTTER)` - 22 edges
+9. `newFinalizeTestEnv()` - 21 edges
+10. `HostMembershipHandler` - 20 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `main()` --calls--> `NewService()`  [INFERRED]
   backend/cmd/server/main.go → backend/internal/audit/audit_service.go
+- `main()` --calls--> `LoadConfig()`  [INFERRED]
+  backend/cmd/server/main.go → backend/internal/config/config.go
+- `main()` --calls--> `NewPostgresPool()`  [INFERRED]
+  backend/cmd/server/main.go → backend/internal/database/postgres.go
+- `main()` --calls--> `NewAuthHandler()`  [INFERRED]
+  backend/cmd/server/main.go → backend/internal/handler/auth_handler.go
 - `main()` --calls--> `NewBankAccountHandler()`  [INFERRED]
   backend/cmd/server/main.go → backend/internal/handler/bank_account_handler.go
-- `main()` --calls--> `NewHostApplicationHandler()`  [INFERRED]
-  backend/cmd/server/main.go → backend/internal/handler/host_application_handler.go
-- `main()` --calls--> `NewHostMembershipHandler()`  [INFERRED]
-  backend/cmd/server/main.go → backend/internal/handler/host_membership_handler.go
-- `main()` --calls--> `NewInvitationHandler()`  [INFERRED]
-  backend/cmd/server/main.go → backend/internal/handler/invitation_handler.go
 
 ## Import Cycles
 - None detected.
 
-## Communities (119 total, 2 thin omitted)
+## Communities (141 total, 2 thin omitted)
 
 ### Community 0 - "Galeriku — Database Specification & Schema Architecture"
 Cohesion: 0.13
@@ -234,8 +256,8 @@ Cohesion: 0.14
 Nodes (13): 1. Ikhtisar Tahapan Pengembangan (Phase Overview), 2. Rincian Teknis per Fase Pengembangan, 3. Strategi Pengujian dan Verifikasi (Testing Matrix), Fase 1: Core Foundation & Infrastructure Setup (Sprint 1), Fase 2: Identity, Auth & Host B2B Portal (Sprint 2), Fase 3: FotoTree & Direct-to-S3 Multipart Upload Massal (DEC-Q03) (Sprint 3), Fase 4: Python AI Worker Pipeline (Biometrik & OCR) (Sprint 4), Fase 5: Penemuan Foto & Proteksi Checkout BIB (DEC-Q02) (Sprint 5) (+5 more)
 
 ### Community 18 - "router.go"
-Cohesion: 0.14
-Nodes (20): main(), getEnv(), LoadConfig(), Context, Pool, NewPostgresPool(), Request, ResponseWriter (+12 more)
+Cohesion: 0.50
+Nodes (4): Request, ResponseWriter, NewAuthHandler(), AuthHandler
 
 ### Community 19 - "Domain 02 - Events, Creators and Photos"
 Cohesion: 0.15
@@ -302,8 +324,8 @@ Cohesion: 0.22
 Nodes (9): Domain 04 - Cart, Orders and Checkout, Tabel: `cart_items`, Tabel: `carts`, Tabel: `checkout_verification_grants`, Tabel: `checkout_verifications`, Tabel: `order_items`, Tabel: `order_status_events`, Tabel: `orders` (+1 more)
 
 ### Community 35 - "Time"
-Cohesion: 0.07
-Nodes (45): AEAD, Handler, Pool, ResponseRecorder, T, UUID, newBankTestEnv(), TestBankAccount_HostAdminAndStrangerForbidden() (+37 more)
+Cohesion: 0.08
+Nodes (32): AEAD, Handler, Pool, ResponseRecorder, T, UUID, newBankTestEnv(), TestBankAccount_HostAdminAndStrangerForbidden() (+24 more)
 
 ### Community 36 - "Domain 07 - Upload, Storage and Quota"
 Cohesion: 0.20
@@ -418,8 +440,8 @@ Cohesion: 0.17
 Nodes (11): src/**/*, test/**/*, compilerOptions, esModuleInterop, forceConsistentCasingInFileNames, module, moduleResolution, skipLibCheck (+3 more)
 
 ### Community 64 - "5. MODEL AKUN DAN CAPABILITY UI"
-Cohesion: 0.12
-Nodes (25): Context, Pool, T, testLeaderOrg(), TestMigration000002_Integration(), TestMigration000002_Rollback_And_Reapply(), ApplyMigrationFile(), EnsureMigrationTable() (+17 more)
+Cohesion: 0.11
+Nodes (27): Context, Pool, T, testLeaderOrg(), TestMigration000002_Integration(), TestMigration000002_Rollback_And_Reapply(), T, TestMigration000003_ProviderUploadIDIsText() (+19 more)
 
 ### Community 65 - "1. Arsitektur Data, Teknologi Stack, dan Prinsip Desain"
 Cohesion: 0.33
@@ -454,8 +476,8 @@ Cohesion: 0.17
 Nodes (10): 11.1. Palet Warna Fungsional (*Functional Colors*), 11.2. Aksesibilitas (WCAG 2.1 AA Standard), 11. SISTEM DESAIN DAN TOKEN UI, 12. STANDAR STATE DAN PENANGANAN ERROR GLOBAL, 13. REKAPITULASI ACCEPTANCE CRITERIA LINTAS KANAL, 1. TUJUAN DAN CAKUPAN, 2. PRINSIP FUNDAMENTAL DESAIN UI/UX, 3. STATUS REQUIREMENT (+2 more)
 
 ### Community 76 - "10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery"
-Cohesion: 0.14
-Nodes (26): Context, T, UUID, newMockTenantRepo(), TestConcurrentContextIsolation(), TestRequireCapability(), TestRequireHostMembership(), GenerateAccessToken() (+18 more)
+Cohesion: 0.26
+Nodes (17): GenerateAccessToken(), Duration, T, TestGenerateAccessToken_EmptySubjectOrEmail(), TestGenerateAccessToken_JTI_UUIDv7(), TestGenerateAccessToken_Success(), TestGenerateAccessToken_WeakSecret(), TestVerifyAccessToken_ExpiredToken() (+9 more)
 
 ### Community 77 - "5. MODEL AKUN DAN CAPABILITY UI"
 Cohesion: 0.50
@@ -470,8 +492,8 @@ Cohesion: 0.11
 Nodes (17): 1. Ikhtisar & Arsitektur Fase 2, 2. Matriks Dependensi Tugas Fase 2, 3. Rincian Teknis per Tugas (Task Specifications), 4. Strategi Pengujian TDD & Standar Review, Galeriku: Phase 2 Implementation Plan (Master Roadmap), Prinsip Utama & Aturan Keamanan Mutlak:, Standar Reviewer Gate (Subagent Review):, Task 2.10: Sinkronisasi OpenAPI 3.1 & Penguatan TypeScript Web Types (+9 more)
 
 ### Community 80 - "11. SISTEM DESAIN DAN TOKEN UI"
-Cohesion: 0.19
-Nodes (14): Client, Context, Duration, NewRedisRateLimiter(), getTestRedisClient(), Client, T, TestRedisRateLimiter_EmptyIdentifier() (+6 more)
+Cohesion: 0.13
+Nodes (23): getTestEnv(), Client, Handler, Pool, T, TestAuthHandler_Login_SuccessAndFailure(), TestAuthHandler_OTPFlowAndAuthMe(), TestAuthHandler_RefreshAndReuseDetection() (+15 more)
 
 ### Community 81 - "10. SPESIFIKASI LAYAR KANAL SUPER ADMIN DASHBOARD"
 Cohesion: 0.22
@@ -486,8 +508,8 @@ Cohesion: 0.50
 Nodes (4): 5.1. Prinsip Multi-Capability, 5.2. Alur Aktivasi Mode Fotografer (Kreator), 5.3. Alur Pendaftaran Host B2B, 5. MODEL AKUN DAN CAPABILITY UI
 
 ### Community 84 - "11. SISTEM DESAIN DAN TOKEN UI"
-Cohesion: 0.10
-Nodes (25): Time, UUID, Time, UUID, Context, PostgresHostRepository, UUID, Context (+17 more)
+Cohesion: 0.09
+Nodes (29): Time, UUID, Time, UUID, Context, T, UUID, newMockTenantRepo() (+21 more)
 
 ### Community 85 - "Galeriku: Phase 2 Task 2.1 Execution Report"
 Cohesion: 0.06
@@ -502,12 +524,12 @@ Cohesion: 0.08
 Nodes (23): 1. Executive Summary, 1. Threat Modeling the 6-Digit Search Space, 2. Repository and Git State Inspection, 2. The Database Exfiltration Hazard, 3. Authoritative Document Hierarchy & Traceability Matrix, 3. Verdict & Mandatory Condition for Task 2.3, 4.1 Argon2id Password Hasher Review, 4.2 JWT HS256 Access Token Review (+15 more)
 
 ### Community 88 - "Domain 06: Finance, Ledger, Settlements & Payouts"
-Cohesion: 0.05
-Nodes (41): Time, UUID, Time, UUID, Context, Pool, UUID, NewPostgresAuthRepository() (+33 more)
+Cohesion: 0.18
+Nodes (7): Context, Time, UUID, OTPChallenge, RefreshToken, mockAuthRepo, mockRateLimiter
 
 ### Community 89 - "10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery"
-Cohesion: 0.07
-Nodes (47): Entry, UUID, HashPassword(), T, TestHashPassword_EmptyPassword(), TestHashPassword_Success(), TestValidatePasswordComplexity(), TestVerifyPassword_InvalidHashes() (+39 more)
+Cohesion: 0.13
+Nodes (19): GenerateCSPRNGRefreshToken(), Context, Duration, UUID, ptrString(), CurrentUserResponse, LoginRequest, LoginResponse (+11 more)
 
 ### Community 90 - "11. SISTEM DESAIN DAN TOKEN UI"
 Cohesion: 0.18
@@ -534,12 +556,12 @@ Cohesion: 0.07
 Nodes (29): 1. Executive Summary & Architecture Status, 2. Master Phase Checklist (Phases 1 to 9), 3. Phase 2 Detailed Task Breakdown & Execution Status, 4. Subsequent Phases Technical Roadmap (Phases 3 through 9), 5. Mandatory Agent Execution Instructions, 6. Document Cross-Reference Directory, A. Environment & Infrastructure Baseline, B. Git Preservation Constraints (+21 more)
 
 ### Community 97 - "PostgresUserRepository"
-Cohesion: 0.12
-Nodes (32): errorCode(), Handler, Pool, ResponseRecorder, T, UUID, newHostTestEnv(), successData() (+24 more)
+Cohesion: 0.36
+Nodes (11): Handler, Pool, ResponseRecorder, T, UUID, newMembershipTestEnv(), TestHostMembership_AdminForbiddenOnLeaderOnlyOperations(), TestHostMembership_ApprovalIsAtomicAndGrantsLeader() (+3 more)
 
 ### Community 98 - "otp.go"
-Cohesion: 0.28
-Nodes (15): GenerateKeyedOTP(), GenerateOTP(), HashKeyedOTP(), HashOTP(), T, TestGenerateKeyedOTP(), TestGenerateOTP_FormatAndEntropy(), TestHashOTP_Deterministic() (+7 more)
+Cohesion: 0.22
+Nodes (17): GenerateKeyedOTP(), GenerateOTP(), HashKeyedOTP(), HashOTP(), T, TestGenerateKeyedOTP(), TestGenerateOTP_FormatAndEntropy(), TestHashOTP_Deterministic() (+9 more)
 
 ### Community 99 - "NewAuthUsecase"
 Cohesion: 0.05
@@ -554,60 +576,60 @@ Cohesion: 0.05
 Nodes (36): 1. Executive Summary, 2. Repository Identity and Working-Tree Preservation Evidence, 3. Acceptance Criteria Verification, 4.1 Tenant Isolation, 4.2 Financial Data Protection, 4.3 Privilege Boundaries, 4.4 State Corruption Resistance, 4.5 Audit Trail (+28 more)
 
 ### Community 102 - "HashPassword"
-Cohesion: 0.11
-Nodes (27): BuildLegalDocumentKey(), DocumentMimeType(), Client, Context, Duration, UUID, NewS3Service(), T (+19 more)
+Cohesion: 0.13
+Nodes (19): Context, Time, UUID, NewHostApplicationUsecase(), Context, UUID, NewHostMembershipUsecase(), HostRepository (+11 more)
 
 ### Community 103 - "GetAuthIdentity"
 Cohesion: 0.33
-Nodes (7): Context, UUID, WithAuthIdentity(), WithTenantContext(), authContextKey, AuthIdentity, TenantContext
+Nodes (8): GetTenantContext(), Context, UUID, WithAuthIdentity(), WithTenantContext(), authContextKey, AuthIdentity, TenantContext
 
 ### Community 104 - "Phase 2: Identity, Authentication & Host B2B Portal (In Progress)"
-Cohesion: 0.17
-Nodes (11): [0.1.0] - 2026-10-15, Added, Added - Task 2.1: Database Migration 000002 & UUIDv7 Regression Fix, Added - Task 2.2: Cryptographic Primitives, Added - Task 2.3: Authentication Endpoints, Repositories & Refresh Token Rotation, Added - Task 2.4: RBAC Authorization Middleware, Tenant Isolation & B2B Context, Added - Tasks 2.5 to 2.10: Host B2B Portal, Payouts, Invitations, Audit & Contracts, Changelog (+3 more)
+Cohesion: 0.11
+Nodes (17): [0.1.0] - 2026-10-15, Added, Added - Task 2.1: Database Migration 000002 & UUIDv7 Regression Fix, Added - Task 2.2: Cryptographic Primitives, Added - Task 2.3: Authentication Endpoints, Repositories & Refresh Token Rotation, Added - Task 2.4: RBAC Authorization Middleware, Tenant Isolation & B2B Context, Added - Task 3.1: FotoTree Hierarchy Management, Added - Task 3.2: Atomic Quota Reservation (DEC-Q03) (+9 more)
 
 ### Community 105 - "Authenticate"
-Cohesion: 0.17
-Nodes (27): Handler, Pool, registerCoreRoutes(), registerHostRoutes(), SetupRoutesWithAuth(), SetupRoutesWithBankAccounts(), SetupRoutesWithHost(), SetupRoutesWithInvitations() (+19 more)
+Cohesion: 0.20
+Nodes (35): Handler, Pool, registerCoreRoutes(), registerFinalizeRoutes(), registerFotoTreeRoutes(), registerHostRoutes(), registerMultipartRoutes(), registerStorageRoutes() (+27 more)
 
 ### Community 106 - "TestLiveTenantIsolationMiddleware"
 Cohesion: 0.43
 Nodes (6): getLiveTestPool(), CancelFunc, Context, Pool, T, TestLiveTenantIsolationMiddleware()
 
 ### Community 107 - "User"
-Cohesion: 0.14
-Nodes (18): Logger, Context, UUID, NewHostMembershipUsecase(), Context, Time, UUID, HashInvitationToken() (+10 more)
+Cohesion: 0.09
+Nodes (30): Entry, Logger, Service, Context, Pool, UUID, NewService(), Pool (+22 more)
 
 ### Community 108 - "api.ts"
 Cohesion: 0.09
 Nodes (27): AcceptInvitationResult, AUTH_ERROR_CODES, AuthErrorCode, CAPABILITY_CODES, CapabilityCode, DocumentUploadResult, DocumentViewResult, ErrorEnvelope (+19 more)
 
 ### Community 109 - "GetRequestID"
-Cohesion: 0.25
-Nodes (9): Request, ResponseWriter, NewInvitationHandler(), GetRequestID(), Context, T, TestCorrelationIDMiddleware(), InvitationHandler (+1 more)
+Cohesion: 0.56
+Nodes (4): Request, ResponseWriter, NewInvitationHandler(), InvitationHandler
 
 ### Community 110 - "PostgresInvitationRepository"
-Cohesion: 0.24
-Nodes (8): Time, UUID, Context, Pool, UUID, NewPostgresInvitationRepository(), HostInvitation, PostgresInvitationRepository
+Cohesion: 0.08
+Nodes (35): Time, UUID, Pool, NewPostgresAuthRepository(), T, hashToken(), TestAuthRepository_OTPChallenges(), TestAuthRepository_RefreshTokenRotation() (+27 more)
 
 ### Community 111 - "GetAuthIdentity"
-Cohesion: 0.37
-Nodes (7): Request, ResponseWriter, NewHostApplicationHandler(), T, TestAuthenticateMiddleware(), GetAuthIdentity(), HostApplicationHandler
+Cohesion: 0.45
+Nodes (6): Request, ResponseWriter, T, TestAuthenticateMiddleware(), GetAuthIdentity(), HostApplicationHandler
 
 ### Community 112 - "HostMembershipHandler"
-Cohesion: 0.50
-Nodes (5): Request, ResponseWriter, NewHostMembershipHandler(), GetTenantContext(), HostMembershipHandler
+Cohesion: 0.54
+Nodes (4): Request, ResponseWriter, NewHostMembershipHandler(), HostMembershipHandler
 
 ### Community 113 - "NewService"
-Cohesion: 0.27
-Nodes (9): Service, Context, Pool, NewService(), Pool, T, liveAuditPool(), TestAuditService_RequiresActionCode() (+1 more)
+Cohesion: 0.10
+Nodes (29): Time, UUID, Request, ResponseWriter, Time, NewEventTreeHandler(), parseOptionalTime(), derefTime() (+21 more)
 
 ### Community 114 - "BankAccountHandler"
-Cohesion: 0.49
-Nodes (5): Request, ResponseWriter, NewBankAccountHandler(), nowRFC3339(), BankAccountHandler
+Cohesion: 0.56
+Nodes (4): Request, ResponseWriter, NewBankAccountHandler(), BankAccountHandler
 
 ### Community 115 - "SetupRoutes"
-Cohesion: 0.60
-Nodes (5): SetupRoutes(), T, TestHealthEndpoint_CustomRequestID(), TestHealthEndpoint_NilPool(), TestHealthEndpoint_WithDatabasePool()
+Cohesion: 0.29
+Nodes (8): Context, Pool, NewPostgresPool(), SetupRoutes(), T, TestHealthEndpoint_CustomRequestID(), TestHealthEndpoint_NilPool(), TestHealthEndpoint_WithDatabasePool()
 
 ### Community 116 - "validate_openapi.py"
 Cohesion: 0.60
@@ -617,25 +639,113 @@ Nodes (4): collect_refs(), main(), Validate the Galeriku OpenAPI 3.1 draft: pars
 Cohesion: 0.50
 Nodes (3): Time, UUID, HostBankAccount
 
+### Community 119 - "PostgresUploadRepository"
+Cohesion: 0.21
+Nodes (12): Time, UUID, Context, Pool, UUID, NewPostgresUploadRepository(), BatchFinalization, StorageQuota (+4 more)
+
+### Community 120 - "S3Service"
+Cohesion: 0.18
+Nodes (11): BuildLegalDocumentKey(), BuildRawUploadKey(), DocumentMimeType(), Client, Context, Duration, UUID, Core (+3 more)
+
+### Community 121 - "mockUserRepo"
+Cohesion: 0.22
+Nodes (11): Time, UUID, Time, UUID, HostMembershipSummary, Order, Photo, User (+3 more)
+
+### Community 122 - "MultipartUploadUsecase"
+Cohesion: 0.27
+Nodes (10): Context, UUID, NewMultipartUploadUsecase(), MultipartRepository, CompleteMultipartResult, InitiateMultipartRequest, InitiateMultipartResult, MultipartUploadUsecase (+2 more)
+
+### Community 123 - "newUploadTestEnv"
+Cohesion: 0.23
+Nodes (13): getEnv(), LoadConfig(), Handler, Pool, ResponseRecorder, T, UUID, newUploadTestEnv() (+5 more)
+
+### Community 124 - "GetRequestID"
+Cohesion: 0.23
+Nodes (9): Request, ResponseWriter, NewBatchFinalizeHandler(), GetRequestID(), Context, T, TestCorrelationIDMiddleware(), BatchFinalizeHandler (+1 more)
+
+### Community 125 - "main"
+Cohesion: 0.30
+Nodes (7): main(), NewHostApplicationHandler(), nowRFC3339(), Request, ResponseWriter, NewUploadBatchHandler(), UploadBatchHandler
+
+### Community 126 - "RabbitPublisher"
+Cohesion: 0.22
+Nodes (9): Context, Time, NewRabbitPublisher(), Channel, Connection, NoopPublisher, PhotoIngestEvent, RabbitPublisher (+1 more)
+
+### Community 127 - "PostgresAuthRepository"
+Cohesion: 0.28
+Nodes (4): Context, UUID, AuthRepository, PostgresAuthRepository
+
+### Community 128 - "NewPostgresUserRepository"
+Cohesion: 0.26
+Nodes (7): Context, Pool, Time, UUID, NewPostgresUserRepository(), PostgresUserRepository, UserRepository
+
+### Community 129 - "successData"
+Cohesion: 0.29
+Nodes (11): errorCode(), Handler, Pool, ResponseRecorder, T, UUID, newHostTestEnv(), successData() (+3 more)
+
+### Community 130 - "newMultipartTestEnv"
+Cohesion: 0.33
+Nodes (10): Handler, Pool, ResponseRecorder, T, UUID, newMultipartTestEnv(), putToPresignedURL(), TestMultipart_AuthorizationAndValidation() (+2 more)
+
+### Community 131 - "HashPassword"
+Cohesion: 0.31
+Nodes (11): HashPassword(), T, TestHashPassword_EmptyPassword(), TestHashPassword_Success(), TestValidatePasswordComplexity(), TestVerifyPassword_InvalidHashes(), TestVerifyPassword_LongPassword(), TestVerifyPassword_MatchAndMismatch() (+3 more)
+
+### Community 132 - "NewAuthUsecase"
+Cohesion: 0.44
+Nodes (11): NewAuthUsecase(), T, newMockAuthRepo(), newMockUserRepo(), TestAuthUsecase_Login_RateLimited(), TestAuthUsecase_Login_Success(), TestAuthUsecase_OTP_SendAndVerify(), TestAuthUsecase_RefreshToken_RotationAndReuse() (+3 more)
+
+### Community 133 - "newFinalizeTestEnv"
+Cohesion: 0.35
+Nodes (9): Handler, Pool, ResponseRecorder, T, UUID, newFinalizeTestEnv(), TestBatchFinalize_AuthorizationAndUnknownBatch(), TestBatchFinalize_ReconcilesQuotaAndPublishesEvent() (+1 more)
+
+### Community 134 - "newFotoTreeTestEnv"
+Cohesion: 0.33
+Nodes (10): Handler, Pool, ResponseRecorder, T, UUID, newFotoTreeTestEnv(), TestFotoTree_CrossTenantAndOutsiderDenied(), TestFotoTree_EventLifecycleWithSessionsAndLocations() (+2 more)
+
+### Community 135 - "newInvitationTestEnv"
+Cohesion: 0.33
+Nodes (10): Handler, Pool, ResponseRecorder, T, UUID, newInvitationTestEnv(), TestInvitation_AdminForbiddenAndExpiredAndRevoked(), TestInvitation_CreateHashesTokenAndAcceptGrantsAdmin() (+2 more)
+
+### Community 136 - "MultipartUploadHandler"
+Cohesion: 0.58
+Nodes (4): Request, ResponseWriter, NewMultipartUploadHandler(), MultipartUploadHandler
+
+### Community 137 - "PostgresMultipartRepository"
+Cohesion: 0.32
+Nodes (6): Context, Pool, Time, UUID, NewPostgresMultipartRepository(), PostgresMultipartRepository
+
+### Community 138 - "NewPostgresTenantRepository"
+Cohesion: 0.39
+Nodes (5): Context, Pool, UUID, NewPostgresTenantRepository(), PostgresTenantRepository
+
+### Community 139 - "NewS3Service"
+Cohesion: 0.50
+Nodes (8): NewS3Service(), T, liveS3(), TestS3Service_PresignUploadScopedToVaultPrefix(), TestS3Service_PresignViewURLShortLived(), TestS3Service_RejectsEmptyCredentials(), TestS3Service_RejectsUnsupportedExtension(), TestS3Service_ViewRejectsForeignPrefixAndTraversal()
+
+### Community 140 - "BatchFinalizeUsecase"
+Cohesion: 0.36
+Nodes (6): Context, UUID, NewBatchFinalizeUsecase(), Publisher, UploadRepository, BatchFinalizeUsecase
+
 ## Knowledge Gaps
-- **1044 isolated node(s):** `github.com/galeriku/core`, `authContextKey`, `contextKey`, `Argon2idParams`, `name` (+1039 more)
+- **1049 isolated node(s):** `github.com/galeriku/core`, `authContextKey`, `contextKey`, `Argon2idParams`, `name` (+1044 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **2 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `main()` connect `router.go` to `Time`, `HashPassword`, `Authenticate`, `User`, `GetRequestID`, `PostgresInvitationRepository`, `GetAuthIdentity`, `HostMembershipHandler`, `NewService`, `BankAccountHandler`, `11. SISTEM DESAIN DAN TOKEN UI`, `11. SISTEM DESAIN DAN TOKEN UI`, `Domain 06: Finance, Ledger, Settlements & Payouts`, `10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery`?**
-  _High betweenness centrality (0.022) - this node is a cross-community bridge._
-- **Why does `NewAuthUsecase()` connect `10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery` to `Time`, `User`, `11. SISTEM DESAIN DAN TOKEN UI`, `router.go`, `Domain 06: Finance, Ledger, Settlements & Payouts`?**
-  _High betweenness centrality (0.018) - this node is a cross-community bridge._
-- **Why does `GenerateAccessToken()` connect `10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery` to `PostgresUserRepository`, `Time`, `TestLiveTenantIsolationMiddleware`, `GetAuthIdentity`, `10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery`?**
+- **Why does `main()` connect `main` to `NewPostgresUserRepository`, `NewAuthUsecase`, `MultipartUploadHandler`, `PostgresMultipartRepository`, `NewPostgresTenantRepository`, `NewS3Service`, `BatchFinalizeUsecase`, `router.go`, `Time`, `11. SISTEM DESAIN DAN TOKEN UI`, `11. SISTEM DESAIN DAN TOKEN UI`, `HashPassword`, `Authenticate`, `User`, `GetRequestID`, `PostgresInvitationRepository`, `HostMembershipHandler`, `NewService`, `BankAccountHandler`, `SetupRoutes`, `PostgresUploadRepository`, `MultipartUploadUsecase`, `newUploadTestEnv`, `GetRequestID`, `RabbitPublisher`?**
+  _High betweenness centrality (0.041) - this node is a cross-community bridge._
+- **Why does `GenerateAccessToken()` connect `10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery` to `successData`, `PostgresUserRepository`, `Time`, `newMultipartTestEnv`, `newFinalizeTestEnv`, `newFotoTreeTestEnv`, `newInvitationTestEnv`, `TestLiveTenantIsolationMiddleware`, `PostgresInvitationRepository`, `GetAuthIdentity`, `11. SISTEM DESAIN DAN TOKEN UI`, `10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery`, `newUploadTestEnv`?**
+  _High betweenness centrality (0.019) - this node is a cross-community bridge._
+- **Why does `NewPostgresUserRepository()` connect `NewPostgresUserRepository` to `successData`, `PostgresUserRepository`, `Time`, `newMultipartTestEnv`, `newFinalizeTestEnv`, `newFotoTreeTestEnv`, `newInvitationTestEnv`, `TestLiveTenantIsolationMiddleware`, `PostgresInvitationRepository`, `11. SISTEM DESAIN DAN TOKEN UI`, `newUploadTestEnv`, `main`?**
   _High betweenness centrality (0.017) - this node is a cross-community bridge._
+- **Are the 35 inferred relationships involving `main()` (e.g. with `NewService()` and `LoadConfig()`) actually correct?**
+  _`main()` has 35 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 22 inferred relationships involving `newSuiteEnv()` (e.g. with `NewService()` and `LoadConfig()`) actually correct?**
   _`newSuiteEnv()` has 22 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 23 inferred relationships involving `main()` (e.g. with `NewService()` and `LoadConfig()`) actually correct?**
-  _`main()` has 23 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 21 inferred relationships involving `GenerateAccessToken()` (e.g. with `newBankTestEnv()` and `newHostTestEnv()`) actually correct?**
-  _`GenerateAccessToken()` has 21 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `github.com/galeriku/core`, `authContextKey`, `contextKey` to the rest of the system?**
-  _1044 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Are the 25 inferred relationships involving `GenerateAccessToken()` (e.g. with `newBankTestEnv()` and `newFinalizeTestEnv()`) actually correct?**
+  _`GenerateAccessToken()` has 25 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 4 inferred relationships involving `SetupRoutesWithFinalize()` (e.g. with `main()` and `newFinalizeTestEnv()`) actually correct?**
+  _`SetupRoutesWithFinalize()` has 4 INFERRED edges - model-reasoned connections that need verification._
