@@ -19,8 +19,13 @@ type Config struct {
 	RabbitPort string
 	QdrantHost string
 	QdrantPort string
-	S3Endpoint string
-	JWTSecret  string
+	S3Endpoint  string
+	S3AccessKey string
+	S3SecretKey string
+	S3UseSSL    bool
+	JWTSecret   string
+	OTPSecret   string
+	BankKey     string
 }
 
 func LoadConfig() *Config {
@@ -39,8 +44,13 @@ func LoadConfig() *Config {
 		RabbitPort: getEnv("RABBITMQ_PORT", "5672"),
 		QdrantHost: getEnv("QDRANT_HOST", "localhost"),
 		QdrantPort: getEnv("QDRANT_PORT", "6333"),
-		S3Endpoint: getEnv("S3_ENDPOINT", "localhost:9000"),
-		JWTSecret:  getEnv("JWT_SECRET", "default_dev_secret_change_in_production"),
+		S3Endpoint:  getEnv("S3_ENDPOINT", "localhost:9010"),
+		S3AccessKey: getEnv("S3_ACCESS_KEY", "galeriku_admin"),
+		S3SecretKey: getEnv("S3_SECRET_KEY", "galeriku_minio_secret"),
+		S3UseSSL:    getEnv("S3_USE_SSL", "false") == "true",
+		JWTSecret:   getEnv("JWT_SECRET", "default_dev_secret_change_in_production"),
+		OTPSecret:   getEnv("OTP_SECRET_KEY", "default_otp_dev_secret_key_min_32_bytes_long!"),
+		BankKey:     getEnv("BANK_CIPHER_KEY", "default_bank_cipher_key_32byte!!"),
 	}
 }
 

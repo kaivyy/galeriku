@@ -1,16 +1,16 @@
 # Graph Report - galeriku  (2026-10-15)
 
 ## Corpus Check
-- 41 files · ~102,098 words
+- 85 files · ~157,014 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 925 nodes · 926 edges · 73 communities (72 shown, 1 thin omitted)
-- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 15 edges (avg confidence: 0.8)
+- 1548 nodes · 1969 edges · 108 communities (106 shown, 2 thin omitted)
+- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 133 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `15ebbce4`
+- Built from commit: `7c215d95`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -84,49 +84,84 @@
 - github.com/galeriku/core
 - 10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery
 - 10. SPESIFIKASI LAYAR KANAL SUPER ADMIN DASHBOARD
+- 7. SPESIFIKASI LAYAR KANAL WEB STOREFRONT (PUBLIK)
+- 10. SPESIFIKASI LAYAR KANAL SUPER ADMIN DASHBOARD
 - 1. Arsitektur Data, Teknologi Stack, dan Prinsip Desain
+- 9. SPESIFIKASI LAYAR KANAL HOST B2B PORTAL
+- Domain 06: Finance, Ledger, Settlements & Payouts
 - 10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery
+- 5. MODEL AKUN DAN CAPABILITY UI
+- Galeriku: Phase 2 Pre-Flight Audit Report
+- 3. Rincian Teknis per Tugas (Task Specifications)
+- 11. SISTEM DESAIN DAN TOKEN UI
+- 10. SPESIFIKASI LAYAR KANAL SUPER ADMIN DASHBOARD
+- 9. SPESIFIKASI LAYAR KANAL HOST B2B PORTAL
+- 5. MODEL AKUN DAN CAPABILITY UI
+- 11. SISTEM DESAIN DAN TOKEN UI
+- Galeriku: Phase 2 Task 2.1 Execution Report
+- HashOTP
+- Galeriku: Phase 2 Task 2.2 Final Acceptance Review
+- Domain 06: Finance, Ledger, Settlements & Payouts
+- 10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery
+- 11. SISTEM DESAIN DAN TOKEN UI
+- 11. SISTEM DESAIN DAN TOKEN UI
+- WorkerConfig
+- Galeriku: Phase 2 Task 2.3 Final Acceptance Review
+- 3. Phase 2 Detailed Task Breakdown & Execution Status
+- 11. SISTEM DESAIN DAN TOKEN UI
+- 3. Phase 2 Detailed Task Breakdown & Execution Status
+- PostgresUserRepository
+- otp.go
+- NewAuthUsecase
+- RequireHostMembership
+- TestConcurrentContextIsolation
+- HashPassword
+- GetAuthIdentity
+- Phase 2: Identity, Authentication & Host B2B Portal (In Progress)
+- Authenticate
+- TestLiveTenantIsolationMiddleware
+- User
 
 ## God Nodes (most connected - your core abstractions)
 1. `6. SPESIFIKASI LAYAR KANAL MOBILE (FLUTTER)` - 22 edges
 2. `6. SPESIFIKASI LAYAR KANAL MOBILE (FLUTTER)` - 22 edges
 3. `8. Analisis dan Resolusi 18 Keputusan Terbuka (OPEN-01 s/d OPEN-18)` - 19 edges
 4. `8. Analisis dan Resolusi 18 Keputusan Terbuka (OPEN-01 s/d OPEN-18)` - 19 edges
-5. `Domain 01: Identity, Auth & Host B2B Portal` - 15 edges
-6. `Domain 01: Identity, Auth & Host B2B Portal` - 15 edges
-7. `PRODUCT REQUIREMENTS DOCUMENT (PRD)` - 14 edges
-8. `PRODUCT REQUIREMENTS DOCUMENT (PRD)` - 14 edges
-9. `Domain 02 - Events, Creators and Photos` - 13 edges
-10. `Domain 02 - Events, Creators and Photos` - 13 edges
+5. `AuthUsecase` - 17 edges
+6. `Galeriku: Phase 2 Task 2.2 Implementation Report` - 17 edges
+7. `getTestEnv()` - 16 edges
+8. `GenerateAccessToken()` - 16 edges
+9. `Galeriku: Phase 2 Task 2.4 Implementation Report` - 16 edges
+10. `mockUserRepo` - 15 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `TestEnsureBucketsLive()` --calls--> `loadEnv()`  [INFERRED]
-  backend/cmd/provisioner/main_test.go → backend/cmd/provisioner/main.go
-- `TestEnsureBucketsContract()` --calls--> `EnsureBucketsExist()`  [INFERRED]
-  backend/cmd/provisioner/main_test.go → backend/cmd/provisioner/main.go
-- `TestEnsureBucketsLive()` --calls--> `EnsureBucketsExist()`  [INFERRED]
-  backend/cmd/provisioner/main_test.go → backend/cmd/provisioner/main.go
-- `main()` --calls--> `LoadConfig()`  [INFERRED]
-  backend/cmd/server/main.go → backend/internal/config/config.go
-- `main()` --calls--> `NewPostgresPool()`  [INFERRED]
-  backend/cmd/server/main.go → backend/internal/database/postgres.go
+- `main()` --calls--> `SetupRoutesWithAuth()`  [INFERRED]
+  backend/cmd/server/main.go → backend/internal/handler/router.go
+- `main()` --calls--> `NewRedisRateLimiter()`  [INFERRED]
+  backend/cmd/server/main.go → backend/internal/security/limiter.go
+- `main()` --calls--> `NewAuthUsecase()`  [INFERRED]
+  backend/cmd/server/main.go → backend/internal/usecase/auth_usecase.go
+- `TestHealthEndpoint_WithDatabasePool()` --calls--> `NewPostgresPool()`  [INFERRED]
+  backend/internal/handler/router_test.go → backend/internal/database/postgres.go
+- `getTestEnv()` --calls--> `SetupRoutesWithAuth()`  [INFERRED]
+  backend/internal/handler/auth_handler_test.go → backend/internal/handler/router.go
 
 ## Import Cycles
 - None detected.
 
-## Communities (73 total, 1 thin omitted)
+## Communities (108 total, 2 thin omitted)
 
 ### Community 0 - "Galeriku — Database Specification & Schema Architecture"
-Cohesion: 0.18
-Nodes (10): 1.1 Stack Teknologi Data, 1.2 Prinsip Integritas dan Standar Representasi, 1. Arsitektur Data, Teknologi Stack, dan Prinsip Desain, 2. Peta 8 Domain dan Ringkasan 76 Tabel, 3. Kamus Data Lengkap (Data Dictionary) 76 Tabel, 4.1 Matriks Kardinalitas Intra-Domain, 4. Kardinalitas dan Relasi Antar Tabel, 6. Relasi Lintas Domain (Cross-Domain Relationships) (+2 more)
+Cohesion: 0.13
+Nodes (14): 10.1 Strategi Partisi Rentang Waktu (Declarative Range Partitioning), 10.2 Prosedur Migrasi Skema Zero-Downtime (Expand-and-Contract), 10.3 Strategi Backup dan Pemulihan Bencana (Disaster Recovery), 10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery, 1.1 Stack Teknologi Data, 1.2 Prinsip Integritas dan Standar Representasi, 1. Arsitektur Data, Teknologi Stack, dan Prinsip Desain, 2. Peta 8 Domain dan Ringkasan 76 Tabel (+6 more)
 
 ### Community 1 - "PRODUCT REQUIREMENTS DOCUMENT (PRD)"
 Cohesion: 0.04
 Nodes (44): 10.1. Diagram Siklus Hidup Transaksi Pesanan, 10.2. Penjelasan State Transaksi & Pemenuhan Web, 10. SISTEM TRANSAKSI, STATE MACHINE, DAN SLA 48 JAM, 11.1. Penempelan Watermark Server-Side yang Tangguh, 11.2. Proteksi Layar di Aplikasi Mobile, 11. PIPELINE MEDIA, STORAGE, DAN PROTEKSI, 12.1. Rincian Milestone Eksekusi, 12. ROADMAP IMPLEMENTASI (5 FASE MENUJU CLOSED BETA) (+36 more)
 
 ### Community 2 - "docs/UI_UX_SPEC.md"
-Cohesion: 0.43
-Nodes (6): __dirname, __filename, getSourceFiles(), isCarveOut(), lintCopy(), VALID_EXTENSIONS
+Cohesion: 0.36
+Nodes (7): __dirname, __filename, FORBIDDEN_EM_DASH_PATTERNS, getSourceFiles(), isCarveOut(), lintCopy(), VALID_EXTENSIONS
 
 ### Community 3 - "PRODUCT REQUIREMENTS DOCUMENT (PRD)"
 Cohesion: 0.04
@@ -189,8 +224,8 @@ Cohesion: 0.14
 Nodes (13): 1. Ikhtisar Tahapan Pengembangan (Phase Overview), 2. Rincian Teknis per Fase Pengembangan, 3. Strategi Pengujian dan Verifikasi (Testing Matrix), Fase 1: Core Foundation & Infrastructure Setup (Sprint 1), Fase 2: Identity, Auth & Host B2B Portal (Sprint 2), Fase 3: FotoTree & Direct-to-S3 Multipart Upload Massal (DEC-Q03) (Sprint 3), Fase 4: Python AI Worker Pipeline (Biometrik & OCR) (Sprint 4), Fase 5: Penemuan Foto & Proteksi Checkout BIB (DEC-Q02) (Sprint 5) (+5 more)
 
 ### Community 18 - "router.go"
-Cohesion: 0.09
-Nodes (25): main(), getEnv(), LoadConfig(), Context, Pool, NewPostgresPool(), Handler, Pool (+17 more)
+Cohesion: 0.13
+Nodes (23): Request, ResponseWriter, Handler, Pool, SetupRoutes(), SetupRoutesWithAuth(), T, TestHealthEndpoint_CustomRequestID() (+15 more)
 
 ### Community 19 - "Domain 02 - Events, Creators and Photos"
 Cohesion: 0.15
@@ -209,8 +244,8 @@ Cohesion: 0.17
 Nodes (12): Domain 01 - Identity and Host, Tabel: `capabilities`, Tabel: `host_admin_limits`, Tabel: `host_applications`, Tabel: `host_invitations`, Tabel: `host_legal_documents`, Tabel: `host_locations`, Tabel: `host_memberships` (+4 more)
 
 ### Community 23 - "UI_UX_SPEC.md"
-Cohesion: 0.05
-Nodes (42): 10. SPESIFIKASI LAYAR KANAL SUPER ADMIN DASHBOARD, 11.1. Palet Warna Fungsional (*Functional Colors*), 11.2. Aksesibilitas (WCAG 2.1 AA Standard), 11. SISTEM DESAIN DAN TOKEN UI, 12. STANDAR STATE DAN PENANGANAN ERROR GLOBAL, 13. REKAPITULASI ACCEPTANCE CRITERIA LINTAS KANAL, 1. TUJUAN DAN CAKUPAN, 2. PRINSIP FUNDAMENTAL DESAIN UI/UX (+34 more)
+Cohesion: 0.18
+Nodes (11): 7. SPESIFIKASI LAYAR KANAL WEB STOREFRONT (PUBLIK), W-01: Landing Page & Event Discovery (P0), W-02: Katalog FotoTree & Detail Event (P0), W-03: Pencarian Nomor BIB di Web (P0), W-04: Detail Foto Web (P0), W-05: Keranjang Belanja Web (Cart) (P0), W-06: Verifikasi OTP / Kode Event di Web (P0; Keputusan `DEC-Q02`), W-07: Checkout Desktop Dynamic QRIS (P0) (+3 more)
 
 ### Community 24 - "8. SPESIFIKASI LAYAR CREATOR WEB STUDIO (FOTOGRAFER)"
 Cohesion: 0.17
@@ -245,8 +280,8 @@ Cohesion: 0.18
 Nodes (10): 1.1 Mobile Client Runtime (Android / iOS), 1.2 Media, Image Processing & Kamera, 1.3 Pemetaan & Geolokasi (Spatial Pipeline), 1.4 Layanan Cloud, Autentikasi & Database, 1.5 Finansial, Payment Gateway & Payouts, 1.6 Machine Learning & Pemrosesan AI, 1. Rincian Bukti Biner Tech Stack FotoYu (v1.11.11), 2. Matriks Komparasi Mendalam: FotoYu vs Galeriku (+2 more)
 
 ### Community 32 - "7. SPESIFIKASI LAYAR KANAL WEB STOREFRONT (PUBLIK)"
-Cohesion: 0.05
-Nodes (42): 10. SPESIFIKASI LAYAR KANAL SUPER ADMIN DASHBOARD, 11.1. Palet Warna Fungsional (*Functional Colors*), 11.2. Aksesibilitas (WCAG 2.1 AA Standard), 11. SISTEM DESAIN DAN TOKEN UI, 12. STANDAR STATE DAN PENANGANAN ERROR GLOBAL, 13. REKAPITULASI ACCEPTANCE CRITERIA LINTAS KANAL, 1. TUJUAN DAN CAKUPAN, 2. PRINSIP FUNDAMENTAL DESAIN UI/UX (+34 more)
+Cohesion: 0.17
+Nodes (10): 11.1. Palet Warna Fungsional (*Functional Colors*), 11.2. Aksesibilitas (WCAG 2.1 AA Standard), 11. SISTEM DESAIN DAN TOKEN UI, 12. STANDAR STATE DAN PENANGANAN ERROR GLOBAL, 13. REKAPITULASI ACCEPTANCE CRITERIA LINTAS KANAL, 1. TUJUAN DAN CAKUPAN, 2. PRINSIP FUNDAMENTAL DESAIN UI/UX, 3. STATUS REQUIREMENT (+2 more)
 
 ### Community 33 - "1. Rincian Bukti Biner Tech Stack FotoYu (v1.11.11)"
 Cohesion: 0.18
@@ -257,8 +292,8 @@ Cohesion: 0.22
 Nodes (9): Domain 04 - Cart, Orders and Checkout, Tabel: `cart_items`, Tabel: `carts`, Tabel: `checkout_verification_grants`, Tabel: `checkout_verifications`, Tabel: `order_items`, Tabel: `order_status_events`, Tabel: `orders` (+1 more)
 
 ### Community 35 - "Time"
-Cohesion: 0.29
-Nodes (6): WorkerConfig, Order, Photo, User, Time, UUID
+Cohesion: 0.16
+Nodes (8): Context, Time, UUID, OTPChallenge, RefreshToken, mockAuthRepo, mockRateLimiter, mockUserRepo
 
 ### Community 36 - "Domain 07 - Upload, Storage and Quota"
 Cohesion: 0.20
@@ -301,8 +336,8 @@ Cohesion: 0.22
 Nodes (9): Domain 05 - Payments, Refunds, Fulfillment and Downloads, Tabel: `download_events`, Tabel: `download_grants`, Tabel: `fulfillment_events`, Tabel: `fulfillment_jobs`, Tabel: `payment_events`, Tabel: `payments`, Tabel: `refund_items` (+1 more)
 
 ### Community 46 - "Galeriku — Database Specification & Schema Architecture"
-Cohesion: 0.18
-Nodes (10): 1.1 Stack Teknologi Data, 1.2 Prinsip Integritas dan Standar Representasi, 1. Arsitektur Data, Teknologi Stack, dan Prinsip Desain, 2. Peta 8 Domain dan Ringkasan 76 Tabel, 3. Kamus Data Lengkap (Data Dictionary) 76 Tabel, 4.1 Matriks Kardinalitas Intra-Domain, 4. Kardinalitas dan Relasi Antar Tabel, 6. Relasi Lintas Domain (Cross-Domain Relationships) (+2 more)
+Cohesion: 0.13
+Nodes (14): 10.1 Strategi Partisi Rentang Waktu (Declarative Range Partitioning), 10.2 Prosedur Migrasi Skema Zero-Downtime (Expand-and-Contract), 10.3 Strategi Backup dan Pemulihan Bencana (Disaster Recovery), 10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery, 1.1 Stack Teknologi Data, 1.2 Prinsip Integritas dan Standar Representasi, 1. Arsitektur Data, Teknologi Stack, dan Prinsip Desain, 2. Peta 8 Domain dan Ringkasan 76 Tabel (+6 more)
 
 ### Community 47 - "9. SPESIFIKASI LAYAR KANAL HOST B2B PORTAL"
 Cohesion: 0.22
@@ -353,68 +388,204 @@ Cohesion: 0.33
 Nodes (6): Domain 08: Platform Ops, System Settings & Admin Portal, `GET /api/v1/admin/audit-logs`, `GET /api/v1/admin/settings`, `POST /api/v1/admin/hosts/{id}/approve`, `POST /api/v1/admin/hosts/{id}/reject`, `PUT /api/v1/admin/settings`
 
 ### Community 59 - "2. Rincian 78 Endpoint RESTful Berdasarkan 8 Domain"
-Cohesion: 0.40
-Nodes (4): 2. Rincian 78 Endpoint RESTful Berdasarkan 8 Domain, 3. Katalog Kode Galat Resmi (System Error Catalog), 4. Kebijakan Rate Limiting & Keamanan API, Galeriku — API Specification & Contract Architecture
+Cohesion: 0.20
+Nodes (9): 2. Rincian 78 Endpoint RESTful Berdasarkan 8 Domain, 3. Katalog Kode Galat Resmi (System Error Catalog), 4. Kebijakan Rate Limiting & Keamanan API, Domain 06: Finance, Ledger, Settlements & Payouts, Galeriku — API Specification & Contract Architecture, `GET /api/v1/finance/ledger-entries`, `GET /api/v1/finance/settlements`, `GET /api/v1/finance/wallet` (+1 more)
 
 ### Community 60 - "Domain 06: Finance, Ledger, Settlements & Payouts"
-Cohesion: 0.40
-Nodes (5): Domain 06: Finance, Ledger, Settlements & Payouts, `GET /api/v1/finance/ledger-entries`, `GET /api/v1/finance/settlements`, `GET /api/v1/finance/wallet`, `POST /api/v1/finance/payouts/request`
+Cohesion: 0.08
+Nodes (24): 10. Tests Actually Executed and Exit Statuses, 11. Independent Review Evidence, 12. Pre-Existing Findings vs Newly Introduced Findings, 13. Unresolved Requirements and Conflicts, 14. Proposed Changes Deliberately Deferred, 15. Explicit Acceptance Status, 1. Executive Summary, 2. Documents Actually Inspected (+16 more)
 
 ### Community 61 - "2. Rincian 78 Endpoint RESTful Berdasarkan 8 Domain"
 Cohesion: 0.20
 Nodes (9): 2. Rincian 78 Endpoint RESTful Berdasarkan 8 Domain, 3. Katalog Kode Galat Resmi (System Error Catalog), 4. Kebijakan Rate Limiting & Keamanan API, Domain 06: Finance, Ledger, Settlements & Payouts, Galeriku — API Specification & Contract Architecture, `GET /api/v1/finance/ledger-entries`, `GET /api/v1/finance/settlements`, `GET /api/v1/finance/wallet` (+1 more)
 
 ### Community 62 - "Domain 06: Finance, Ledger, Settlements & Payouts"
-Cohesion: 0.15
-Nodes (12): typescript, vitest, devDependencies, typescript, vitest, name, private, scripts (+4 more)
+Cohesion: 0.14
+Nodes (13): typescript, vitest, devDependencies, typescript, vitest, name, private, scripts (+5 more)
 
 ### Community 63 - "10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery"
 Cohesion: 0.17
 Nodes (11): src/**/*, test/**/*, compilerOptions, esModuleInterop, forceConsistentCasingInFileNames, module, moduleResolution, skipLibCheck (+3 more)
 
 ### Community 64 - "5. MODEL AKUN DAN CAPABILITY UI"
-Cohesion: 0.29
-Nodes (5): Context, Pool, T, TestVerifySchemaCompleteness(), VerifySchemaCompleteness()
+Cohesion: 0.12
+Nodes (25): Context, Pool, T, testLeaderOrg(), TestMigration000002_Integration(), TestMigration000002_Rollback_And_Reapply(), ApplyMigrationFile(), EnsureMigrationTable() (+17 more)
 
 ### Community 65 - "1. Arsitektur Data, Teknologi Stack, dan Prinsip Desain"
 Cohesion: 0.33
 Nodes (6): 7.1 Invariant Double-Entry Ledger (Penyeimbangan Buku Besar), 7.2 Integritas Nilai Moneter Rupiah Bulat, 7.3 Atomisitas Reservasi Kuota Unggahan (DEC-Q03), 7.4 Batas Maksimal Pengembalian Dana (Refund Boundary), 7.5 Hak Akses Host Admin Terbatas, 7. Constraint Kritis dan Invariant Bisnis
 
 ### Community 69 - "10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery"
-Cohesion: 0.50
-Nodes (4): 10.1 Strategi Partisi Rentang Waktu (Declarative Range Partitioning), 10.2 Prosedur Migrasi Skema Zero-Downtime (Expand-and-Contract), 10.3 Strategi Backup dan Pemulihan Bencana (Disaster Recovery), 10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery
+Cohesion: 0.07
+Nodes (26): 10. Claims That Remain Unverified, 11. Final Acceptance Decision, 12. Prerequisites for Task 2.2, 13. Review Confirmation, 1. Executive Summary, 2. Repository and Git State, 3. Files Reviewed, 4.1 Timestamp Extraction and Overflow Elimination (+18 more)
 
 ### Community 70 - "10. SPESIFIKASI LAYAR KANAL SUPER ADMIN DASHBOARD"
 Cohesion: 0.60
 Nodes (4): AntislopDials, BrandPalette, LayoutMetrics, validateAntislopCopy()
 
+### Community 71 - "7. SPESIFIKASI LAYAR KANAL WEB STOREFRONT (PUBLIK)"
+Cohesion: 0.18
+Nodes (11): 7. SPESIFIKASI LAYAR KANAL WEB STOREFRONT (PUBLIK), W-01: Landing Page & Event Discovery (P0), W-02: Katalog FotoTree & Detail Event (P0), W-03: Pencarian Nomor BIB di Web (P0), W-04: Detail Foto Web (P0), W-05: Keranjang Belanja Web (Cart) (P0), W-06: Verifikasi OTP / Kode Event di Web (P0; Keputusan `DEC-Q02`), W-07: Checkout Desktop Dynamic QRIS (P0) (+3 more)
+
+### Community 72 - "10. SPESIFIKASI LAYAR KANAL SUPER ADMIN DASHBOARD"
+Cohesion: 0.22
+Nodes (9): 10. SPESIFIKASI LAYAR KANAL SUPER ADMIN DASHBOARD, A-01: Ringkasan Kesehatan Sistem & Metrik (P0), A-02: Manajemen Pengguna & Hak Akses Capability (P0), A-03: Verifikasi Legalitas Host (P0), A-04: Moderasi Konten & Penanganan Hak Cipta (P0), A-05: Monitoring Pesanan, Pembayaran & Refund (P0), A-06: Rekonsiliasi Finansial & Ledger Pembukuan (P0), A-07: Penanganan Permintaan Privasi UU PDP (P0) (+1 more)
+
 ### Community 73 - "1. Arsitektur Data, Teknologi Stack, dan Prinsip Desain"
 Cohesion: 0.17
 Nodes (12): 8. SPESIFIKASI LAYAR CREATOR WEB STUDIO (FOTOGRAFER), CS-01: Login & Capability Gate (P0), CS-02: Dashboard Ringkasan Performa (P0), CS-03: Pemilih FotoTree Target (P0), CS-04: Dropzone Unggah Massal (P0), CS-05: Preflight Check & Alokasi Kuota (P0; Keputusan `DEC-Q03`), CS-06: Monitoring Progres Upload Massal (P0), CS-07: Antrean Pemrosesan Server (*Processing Queue*) (P0) (+4 more)
 
+### Community 74 - "9. SPESIFIKASI LAYAR KANAL HOST B2B PORTAL"
+Cohesion: 0.25
+Nodes (8): 9. SPESIFIKASI LAYAR KANAL HOST B2B PORTAL, H-01: Registrasi Legalitas Badan Usaha (P0), H-02: Dashboard Operasional Host (P0), H-03: Manajemen FotoTree, Lokasi & Rute (P0), H-04: Pendelegasian 5 Host Admin (P0), H-05: Perekrutan & Manajemen Fotografer Resmi (P0), H-06: Konfigurasi Pembagian Hasil (*Revenue Sharing*) (P0), H-07: Penarikan Saldo Bulanan Host (P0)
+
+### Community 75 - "Domain 06: Finance, Ledger, Settlements & Payouts"
+Cohesion: 0.22
+Nodes (7): 12. STANDAR STATE DAN PENANGANAN ERROR GLOBAL, 13. REKAPITULASI ACCEPTANCE CRITERIA LINTAS KANAL, 1. TUJUAN DAN CAKUPAN, 2. PRINSIP FUNDAMENTAL DESAIN UI/UX, 3. STATUS REQUIREMENT, 4. ARSITEKTUR INFORMASI & PETA NAVIGASI (NAVIGATION MAP), Galeriku — UI/UX Specification
+
 ### Community 76 - "10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery"
+Cohesion: 0.26
+Nodes (17): GenerateAccessToken(), Duration, T, TestGenerateAccessToken_EmptySubjectOrEmail(), TestGenerateAccessToken_JTI_UUIDv7(), TestGenerateAccessToken_Success(), TestGenerateAccessToken_WeakSecret(), TestVerifyAccessToken_ExpiredToken() (+9 more)
+
+### Community 77 - "5. MODEL AKUN DAN CAPABILITY UI"
 Cohesion: 0.50
-Nodes (4): 10.1 Strategi Partisi Rentang Waktu (Declarative Range Partitioning), 10.2 Prosedur Migrasi Skema Zero-Downtime (Expand-and-Contract), 10.3 Strategi Backup dan Pemulihan Bencana (Disaster Recovery), 10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery
+Nodes (4): 5.1. Prinsip Multi-Capability, 5.2. Alur Aktivasi Mode Fotografer (Kreator), 5.3. Alur Pendaftaran Host B2B, 5. MODEL AKUN DAN CAPABILITY UI
+
+### Community 78 - "Galeriku: Phase 2 Pre-Flight Audit Report"
+Cohesion: 0.07
+Nodes (26): 10. Keterbatasan Audit & Batasan Verifikasi, 1. Executive Summary, 2. Status Repositori dan Git, 3. Verifikasi Klaim Fase 1, 4.1 Pemilihan Mekanisme Autentikasi: JWT vs Session, 4.2 Algoritma Hashing Kata Sandi, 4.3 Alur OTP (WhatsApp / SMS) & Pencegahan Brute Force, 4.4 Isolasi Tenant & Pemisahan Hak Akses Host Leader vs Host Admin (+18 more)
+
+### Community 79 - "3. Rincian Teknis per Tugas (Task Specifications)"
+Cohesion: 0.11
+Nodes (17): 1. Ikhtisar & Arsitektur Fase 2, 2. Matriks Dependensi Tugas Fase 2, 3. Rincian Teknis per Tugas (Task Specifications), 4. Strategi Pengujian TDD & Standar Review, Galeriku: Phase 2 Implementation Plan (Master Roadmap), Prinsip Utama & Aturan Keamanan Mutlak:, Standar Reviewer Gate (Subagent Review):, Task 2.10: Sinkronisasi OpenAPI 3.1 & Penguatan TypeScript Web Types (+9 more)
+
+### Community 80 - "11. SISTEM DESAIN DAN TOKEN UI"
+Cohesion: 0.21
+Nodes (13): Client, Context, Duration, NewRedisRateLimiter(), getTestRedisClient(), Client, T, TestRedisRateLimiter_EmptyIdentifier() (+5 more)
+
+### Community 81 - "10. SPESIFIKASI LAYAR KANAL SUPER ADMIN DASHBOARD"
+Cohesion: 0.22
+Nodes (9): 10. SPESIFIKASI LAYAR KANAL SUPER ADMIN DASHBOARD, A-01: Ringkasan Kesehatan Sistem & Metrik (P0), A-02: Manajemen Pengguna & Hak Akses Capability (P0), A-03: Verifikasi Legalitas Host (P0), A-04: Moderasi Konten & Penanganan Hak Cipta (P0), A-05: Monitoring Pesanan, Pembayaran & Refund (P0), A-06: Rekonsiliasi Finansial & Ledger Pembukuan (P0), A-07: Penanganan Permintaan Privasi UU PDP (P0) (+1 more)
+
+### Community 82 - "9. SPESIFIKASI LAYAR KANAL HOST B2B PORTAL"
+Cohesion: 0.25
+Nodes (8): 9. SPESIFIKASI LAYAR KANAL HOST B2B PORTAL, H-01: Registrasi Legalitas Badan Usaha (P0), H-02: Dashboard Operasional Host (P0), H-03: Manajemen FotoTree, Lokasi & Rute (P0), H-04: Pendelegasian 5 Host Admin (P0), H-05: Perekrutan & Manajemen Fotografer Resmi (P0), H-06: Konfigurasi Pembagian Hasil (*Revenue Sharing*) (P0), H-07: Penarikan Saldo Bulanan Host (P0)
+
+### Community 83 - "5. MODEL AKUN DAN CAPABILITY UI"
+Cohesion: 0.50
+Nodes (4): 5.1. Prinsip Multi-Capability, 5.2. Alur Aktivasi Mode Fotografer (Kreator), 5.3. Alur Pendaftaran Host B2B, 5. MODEL AKUN DAN CAPABILITY UI
+
+### Community 84 - "11. SISTEM DESAIN DAN TOKEN UI"
+Cohesion: 0.24
+Nodes (10): Time, UUID, Context, Pool, UUID, NewPostgresTenantRepository(), EventSummary, HostMembership (+2 more)
+
+### Community 85 - "Galeriku: Phase 2 Task 2.1 Execution Report"
+Cohesion: 0.06
+Nodes (30): 1.1 The UUIDv7 Runtime Defect (P0 Blocker), 1.2 The Exact Fix, 1. Executive Summary and Root Cause Analysis, 2. Files Created and Modified, 3.1 New Tables, 3.2 Domain 01 Foreign Keys Added, 3.3 Host Leader Invariant (OPEN-10 Hardening), 3. Database Schema Changes, Constraints, and Indexes (+22 more)
+
+### Community 86 - "HashOTP"
+Cohesion: 0.11
+Nodes (17): 10. Security Threat Cases and Test Coverage, 11. Test Commands and Actual Outcomes, 12. Known Limitations and Tenant-Isolation Coverage Boundary, 13. Confirmation of Task 2.3 Conditions and Working Tree Preservation, 14. Explicit Recommendation for Next Step, 1. Executive Summary, 2. Official Documents Inspected, 3. Scope Extracted from Implementation Plan (+9 more)
+
+### Community 87 - "Galeriku: Phase 2 Task 2.2 Final Acceptance Review"
+Cohesion: 0.08
+Nodes (23): 1. Executive Summary, 1. Threat Modeling the 6-Digit Search Space, 2. Repository and Git State Inspection, 2. The Database Exfiltration Hazard, 3. Authoritative Document Hierarchy & Traceability Matrix, 3. Verdict & Mandatory Condition for Task 2.3, 4.1 Argon2id Password Hasher Review, 4.2 JWT HS256 Access Token Review (+15 more)
+
+### Community 88 - "Domain 06: Finance, Ledger, Settlements & Payouts"
+Cohesion: 0.06
+Nodes (37): main(), getEnv(), LoadConfig(), Context, Pool, NewPostgresPool(), NewAuthHandler(), getTestEnv() (+29 more)
+
+### Community 89 - "10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery"
+Cohesion: 0.11
+Nodes (22): GenerateCSPRNGRefreshToken(), Context, Duration, UUID, CurrentUserResponse, HostMembershipSummary, LoginRequest, LoginResponse (+14 more)
+
+### Community 90 - "11. SISTEM DESAIN DAN TOKEN UI"
+Cohesion: 0.18
+Nodes (10): 1. Authoritative Documents Inspected, 2. Requirements Extracted from Official Plan, 3. Existing Components to Reuse, 4. Files Expected to Change / Be Created, 5. Test Strategy, 6. Security Risks and Mitigations, 7. Out-of-Scope Items, 8. Unresolved Blockers (+2 more)
+
+### Community 91 - "11. SISTEM DESAIN DAN TOKEN UI"
+Cohesion: 0.10
+Nodes (20): 10. Antislop Craftsmanship Verification, 11. Explicit Completion Verdict, 1. Executive Summary, 2. Documents Actually Inspected, 3. Requirements Traced to Source Files, 4.1 Domain Models and Envelopes (`backend/internal/domain/auth.go`), 4.2 Keyed OTP Digest Implementation (Condition F-01), 4.3 Login Rate Limiting (Condition F-02) (+12 more)
+
+### Community 93 - "Galeriku: Phase 2 Task 2.3 Final Acceptance Review"
+Cohesion: 0.07
+Nodes (29): 10. Final Acceptance Decision & Next Action, 1. Executive Summary, 2. Repository Identity and Working-Tree Preservation Evidence, 3. Authoritative Document Hierarchy & Reviewed Sources, 4. Endpoint Contract Verification Matrix, 5. Mandatory Security Condition Matrix, 6.1 OTP Security (Condition F-01 Deep Dive), 6.2 Login Throttling & Account Enumeration (Condition F-02 Deep Dive) (+21 more)
+
+### Community 94 - "3. Phase 2 Detailed Task Breakdown & Execution Status"
+Cohesion: 0.07
+Nodes (29): 1. Executive Summary & Architecture Status, 2. Master Phase Checklist (Phases 1 to 9), 3. Phase 2 Detailed Task Breakdown & Execution Status, 4. Subsequent Phases Technical Roadmap (Phases 3 through 9), 5. Mandatory Agent Execution Instructions, 6. Document Cross-Reference Directory, A. Environment & Infrastructure Baseline, B. Git Preservation Constraints (+21 more)
+
+### Community 95 - "11. SISTEM DESAIN DAN TOKEN UI"
+Cohesion: 0.67
+Nodes (3): 11.1. Palet Warna Fungsional (*Functional Colors*), 11.2. Aksesibilitas (WCAG 2.1 AA Standard), 11. SISTEM DESAIN DAN TOKEN UI
+
+### Community 96 - "3. Phase 2 Detailed Task Breakdown & Execution Status"
+Cohesion: 0.07
+Nodes (29): 1. Executive Summary & Architecture Status, 2. Master Phase Checklist (Phases 1 to 9), 3. Phase 2 Detailed Task Breakdown & Execution Status, 4. Subsequent Phases Technical Roadmap (Phases 3 through 9), 5. Mandatory Agent Execution Instructions, 6. Document Cross-Reference Directory, A. Environment & Infrastructure Baseline, B. Git Preservation Constraints (+21 more)
+
+### Community 97 - "PostgresUserRepository"
+Cohesion: 0.24
+Nodes (8): Time, UUID, Context, Time, UUID, UserCredential, UserProfile, PostgresUserRepository
+
+### Community 98 - "otp.go"
+Cohesion: 0.28
+Nodes (15): GenerateKeyedOTP(), GenerateOTP(), HashKeyedOTP(), HashOTP(), T, TestGenerateKeyedOTP(), TestGenerateOTP_FormatAndEntropy(), TestHashOTP_Deterministic() (+7 more)
+
+### Community 99 - "NewAuthUsecase"
+Cohesion: 0.34
+Nodes (12): NewAuthUsecase(), T, newMockAuthRepo(), newMockUserRepo(), TestAuthUsecase_Login_RateLimited(), TestAuthUsecase_Login_Success(), TestAuthUsecase_OTP_SendAndVerify(), TestAuthUsecase_RefreshToken_RotationAndReuse() (+4 more)
+
+### Community 100 - "RequireHostMembership"
+Cohesion: 0.25
+Nodes (13): Handler, Request, UUID, RequireCapability(), RequireHostLeader(), RequireHostMembership(), resolveTargetOrganization(), TestRequireCapability() (+5 more)
+
+### Community 101 - "TestConcurrentContextIsolation"
+Cohesion: 0.34
+Nodes (8): Context, T, UUID, newMockTenantRepo(), TestConcurrentContextIsolation(), TestRequireHostMembership(), mockCapabilityChecker, mockTenantRepo
+
+### Community 102 - "HashPassword"
+Cohesion: 0.31
+Nodes (11): HashPassword(), T, TestHashPassword_EmptyPassword(), TestHashPassword_Success(), TestValidatePasswordComplexity(), TestVerifyPassword_InvalidHashes(), TestVerifyPassword_LongPassword(), TestVerifyPassword_MatchAndMismatch() (+3 more)
+
+### Community 103 - "GetAuthIdentity"
+Cohesion: 0.33
+Nodes (9): GetAuthIdentity(), GetTenantContext(), Context, UUID, WithAuthIdentity(), WithTenantContext(), authContextKey, AuthIdentity (+1 more)
+
+### Community 104 - "Phase 2: Identity, Authentication & Host B2B Portal (In Progress)"
+Cohesion: 0.18
+Nodes (10): [0.1.0] - 2026-10-15, Added, Added - Task 2.1: Database Migration 000002 & UUIDv7 Regression Fix, Added - Task 2.2: Cryptographic Primitives, Added - Task 2.3: Authentication Endpoints, Repositories & Refresh Token Rotation, Added - Task 2.4: RBAC Authorization Middleware, Tenant Isolation & B2B Context, Changelog, Phase 1: Core Foundation & Infrastructure (Completed) (+2 more)
+
+### Community 105 - "Authenticate"
+Cohesion: 0.25
+Nodes (7): Authenticate(), Handler, Request, ResponseWriter, T, TestAuthenticateMiddleware(), writeMiddlewareError()
+
+### Community 106 - "TestLiveTenantIsolationMiddleware"
+Cohesion: 0.43
+Nodes (6): getLiveTestPool(), CancelFunc, Context, Pool, T, TestLiveTenantIsolationMiddleware()
+
+### Community 107 - "User"
+Cohesion: 0.60
+Nodes (5): Time, UUID, Order, Photo, User
 
 ## Knowledge Gaps
-- **702 isolated node(s):** `github.com/galeriku/core`, `contextKey`, `name`, `version`, `private` (+697 more)
+- **933 isolated node(s):** `github.com/galeriku/core`, `authContextKey`, `contextKey`, `Argon2idParams`, `name` (+928 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **1 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **2 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `3. Kamus Data Lengkap (Data Dictionary) 76 Tabel` connect `Galeriku — Database Specification & Schema Architecture` to `Domain 07 - Upload, Storage and Quota`, `Domain 04 - Cart, Orders and Checkout`, `Domain 05 - Payments, Refunds, Fulfillment and Downloads`, `Domain 08 - Platform Ops, Audit and Reliability`, `Domain 02 - Events, Creators and Photos`, `Domain 01 - Identity and Host`, `Domain 03 - AI and Biometric Privacy`, `Domain 06 - Host Fee, Ledger and Settlement`?**
-  _High betweenness centrality (0.019) - this node is a cross-community bridge._
-- **Why does `3. Kamus Data Lengkap (Data Dictionary) 76 Tabel` connect `Galeriku — Database Specification & Schema Architecture` to `7. SPESIFIKASI LAYAR KANAL WEB STOREFRONT (PUBLIK)`, `Domain 07 - Upload, Storage and Quota`, `10. SPESIFIKASI LAYAR KANAL SUPER ADMIN DASHBOARD`, `9. SPESIFIKASI LAYAR KANAL HOST B2B PORTAL`, `Domain 02 - Events, Creators and Photos`, `Domain 01 - Identity and Host`, `Domain 03 - AI and Biometric Privacy`, `Domain 06 - Host Fee, Ledger and Settlement`?**
-  _High betweenness centrality (0.019) - this node is a cross-community bridge._
-- **Why does `Galeriku — Database Specification & Schema Architecture` connect `Galeriku — Database Specification & Schema Architecture` to `5.8 Resolusi 10 Keputusan Terbuka Khusus Refund (REF-01 s/d REF-10)`, `8. Analisis dan Resolusi 18 Keputusan Terbuka (OPEN-01 s/d OPEN-18)`, `7. Constraint Kritis dan Invariant Bisnis`, `10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery`?**
-  _High betweenness centrality (0.014) - this node is a cross-community bridge._
-- **What connects `github.com/galeriku/core`, `contextKey`, `name` to the rest of the system?**
-  _702 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does `AuthUsecase` connect `10. Strategi Partisi Tabel, Migrasi, Backup, dan Disaster Recovery` to `Domain 06: Finance, Ledger, Settlements & Payouts`, `router.go`, `NewAuthUsecase`?**
+  _High betweenness centrality (0.013) - this node is a cross-community bridge._
+- **Why does `SetupRoutesWithAuth()` connect `router.go` to `Domain 06: Finance, Ledger, Settlements & Payouts`, `Authenticate`?**
+  _High betweenness centrality (0.011) - this node is a cross-community bridge._
+- **Why does `NewPostgresUserRepository()` connect `Domain 06: Finance, Ledger, Settlements & Payouts` to `PostgresUserRepository`, `TestLiveTenantIsolationMiddleware`, `NewAuthUsecase`?**
+  _High betweenness centrality (0.009) - this node is a cross-community bridge._
+- **What connects `github.com/galeriku/core`, `authContextKey`, `contextKey` to the rest of the system?**
+  _933 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `Galeriku — Database Specification & Schema Architecture` be split into smaller, more focused modules?**
+  _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._
 - **Should `PRODUCT REQUIREMENTS DOCUMENT (PRD)` be split into smaller, more focused modules?**
   _Cohesion score 0.044444444444444446 - nodes in this community are weakly interconnected._
 - **Should `PRODUCT REQUIREMENTS DOCUMENT (PRD)` be split into smaller, more focused modules?**
   _Cohesion score 0.044444444444444446 - nodes in this community are weakly interconnected._
-- **Should `Galeriku — Catatan Review PRD dan Keputusan Produk` be split into smaller, more focused modules?**
-  _Cohesion score 0.08695652173913043 - nodes in this community are weakly interconnected._

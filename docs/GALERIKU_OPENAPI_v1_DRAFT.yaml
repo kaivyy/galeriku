@@ -498,6 +498,546 @@ paths:
                         example: PROCESSING
                   meta:
                     $ref: '#/components/schemas/SuccessMeta'
+  /auth/register:
+    post:
+      summary: Registrasi akun pengguna baru
+      description: Membuat akun dengan capability awal BUYER dan mengembalikan sesi.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - email
+              - password
+              - display_name
+              properties:
+                email:
+                  type: string
+                  format: email
+                phone_e164:
+                  type: string
+                  example: "+628123456789"
+                password:
+                  type: string
+                  minLength: 8
+                display_name:
+                  type: string
+      responses:
+        '201':
+          description: Akun dibuat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSessionEnvelope'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+  /auth/login:
+    post:
+      summary: Login dan penerbitan sesi
+      description: Memverifikasi kredensial dan menerbitkan access token serta refresh token.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - identifier
+              - password
+              properties:
+                identifier:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Sesi diterbitkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSessionEnvelope'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitedError'
+  /auth/refresh:
+    post:
+      summary: Rotasi refresh token
+      description: Menukar refresh token sekali pakai dengan sesi baru. Pemakaian ulang token yang sudah dirotasi mencabut seluruh family.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Sesi dirotasi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSessionEnvelope'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /auth/logout:
+    post:
+      summary: Mengakhiri sesi
+      description: Mencabut refresh token yang dipresentasikan dan mencatat audit pencabutan sesi.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Sesi dicabut
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutEnvelope'
+  /auth/me:
+    get:
+      summary: Profil pengguna saat ini
+      description: Mengembalikan profil, capability, dan keanggotaan Host pengguna terautentikasi.
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: Profil pengguna
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUserEnvelope'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /hosts/apply:
+    post:
+      summary: Pengajuan pendaftaran organisasi Host
+      description: Membuat host_organizations berstatus SUBMITTED beserta host_applications, dengan pemohon sebagai pemilik pengajuan.
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - legal_name
+              - display_name
+              - business_field
+              properties:
+                legal_name:
+                  type: string
+                  example: PT Generasi Olahraga Hebat
+                display_name:
+                  type: string
+                  example: Jakarta Marathon Organizer
+                business_field:
+                  type: string
+                  example: Sport Event Organizer
+                address_text:
+                  type: string
+      responses:
+        '201':
+          description: Pengajuan dibuat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HostApplicationEnvelope'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+  /hosts/applications/my:
+    get:
+      summary: Status pengajuan Host pengguna
+      description: Mengembalikan pengajuan aktif milik pemanggil beserta jumlah dokumen yang sudah terdaftar.
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: Pengajuan aktif
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyHostApplicationEnvelope'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+  /hosts/documents:
+    post:
+      summary: Presigned URL unggah dokumen legalitas
+      description: Menerbitkan presigned S3 PUT URL yang dibatasi ketat pada path legal-documents/{org_id}/ di bucket privat galeriku-master-vault.
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - application_id
+              - document_type
+              - file_name
+              properties:
+                application_id:
+                  type: string
+                  format: uuid
+                document_type:
+                  $ref: '#/components/schemas/HostDocumentType'
+                file_name:
+                  type: string
+                  example: nib_oss_pt_generasi.pdf
+                size_bytes:
+                  type: integer
+                  format: int64
+      responses:
+        '201':
+          description: Presigned URL diterbitkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentUploadEnvelope'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /hosts/documents/{id}/view:
+    get:
+      summary: Presigned URL baca dokumen legalitas
+      description: Menerbitkan presigned S3 GET URL berumur 5 menit. Hanya pemohon, anggota aktif organisasi pemilik, atau pemegang capability SUPER_ADMIN.
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Presigned URL diterbitkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentViewEnvelope'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+  /hosts/organization:
+    get:
+      summary: Detail organisasi Host
+      description: Mengembalikan profil organisasi beserta kuota admin. Dapat diakses Leader dan Admin aktif.
+      security:
+      - BearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/OrganizationIdHeader'
+      responses:
+        '200':
+          description: Detail organisasi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HostOrganizationEnvelope'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+    patch:
+      summary: Perubahan detail legal organisasi
+      description: Memperbarui legal_name, display_name, atau business_field. Hanya Host Leader aktif.
+      security:
+      - BearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/OrganizationIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                legal_name:
+                  type: string
+                display_name:
+                  type: string
+                business_field:
+                  type: string
+      responses:
+        '200':
+          description: Organisasi diperbarui
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdatedEnvelope'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /hosts/members:
+    get:
+      summary: Daftar anggota organisasi Host
+      description: Mengembalikan seluruh keanggotaan organisasi. Dapat diakses Leader dan Admin aktif.
+      security:
+      - BearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/OrganizationIdHeader'
+      responses:
+        '200':
+          description: Daftar anggota
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HostMembersEnvelope'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /hosts/members/{id}:
+    delete:
+      summary: Pencabutan keanggotaan
+      description: Mencabut satu keanggotaan. Hanya Host Leader aktif; membership Leader tidak dapat dihapus.
+      security:
+      - BearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/OrganizationIdHeader'
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Keanggotaan dicabut
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdatedEnvelope'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+  /hosts/bank-accounts:
+    get:
+      summary: Daftar rekening bank Host (masked)
+      description: Mengembalikan rekening payout dengan nomor tersensor. Hanya Host Leader aktif.
+      security:
+      - BearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/OrganizationIdHeader'
+      responses:
+        '200':
+          description: Daftar rekening
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankAccountsEnvelope'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+    post:
+      summary: Registrasi rekening bank Host
+      description: Mendaftarkan rekening payout. Nomor disimpan terenkripsi AES-256-GCM dan setiap mutasi menulis audit_logs. Hanya Host Leader aktif.
+      security:
+      - BearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/OrganizationIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bank_code
+              - account_number
+              - account_holder_name
+              properties:
+                bank_code:
+                  type: string
+                  example: BCA
+                account_number:
+                  type: string
+                  example: "1234567890123456"
+                account_holder_name:
+                  type: string
+      responses:
+        '201':
+          description: Rekening terdaftar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankAccountEnvelope'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /hosts/invitations:
+    post:
+      summary: Undangan anggota tim Host
+      description: Menerbitkan undangan 72 jam; hanya hash SHA-256 token yang disimpan. Hanya Host Leader aktif.
+      security:
+      - BearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/OrganizationIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - invited_email
+              properties:
+                invited_email:
+                  type: string
+                  format: email
+                membership_role:
+                  type: string
+                  enum:
+                  - ADMIN
+                  default: ADMIN
+      responses:
+        '201':
+          description: Undangan diterbitkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationEnvelope'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /hosts/invitations/accept:
+    post:
+      summary: Penerimaan undangan tim Host
+      description: Menerima undangan dan membuat keanggotaan ADMIN aktif. Ditolak 422 bila kuota admin penuh dan 410 bila undangan kedaluwarsa.
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - invitation_token
+              properties:
+                invitation_token:
+                  type: string
+      responses:
+        '200':
+          description: Undangan diterima
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptInvitationEnvelope'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '410':
+          description: Undangan kedaluwarsa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '422':
+          description: Kuota admin penuh
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /hosts/invitations/{id}:
+    delete:
+      summary: Pembatalan undangan tim Host
+      description: Membatalkan undangan yang masih PENDING. Hanya Host Leader aktif.
+      security:
+      - BearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/OrganizationIdHeader'
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Undangan dibatalkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdatedEnvelope'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /admin/hosts/applications/{id}/approve:
+    post:
+      summary: Persetujuan pengajuan Host
+      description: Menyetujui pengajuan secara atomik. Mengubah status organisasi dan pengajuan menjadi APPROVED, membuat keanggotaan LEADER aktif, memberi capability HOST_LEADER, dan menginisialisasi kuota admin (default 5).
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Pengajuan disetujui
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewEnvelope'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+  /admin/hosts/applications/{id}/reject:
+    post:
+      summary: Penolakan pengajuan Host
+      description: Menolak pengajuan dengan kode alasan dan mengubah status organisasi menjadi REJECTED.
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - reason_code
+              properties:
+                reason_code:
+                  type: string
+      responses:
+        '200':
+          description: Pengajuan ditolak
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewEnvelope'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
 components:
   securitySchemes:
     BearerAuth:
@@ -506,6 +1046,388 @@ components:
       bearerFormat: JWT
       description: Token JWT berumur pendek untuk autentikasi pengguna.
   schemas:
+    CapabilityCode:
+      type: string
+      enum:
+      - BUYER
+      - CREATOR
+      - HOST_ADMIN
+      - HOST_LEADER
+      - SUPER_ADMIN
+    HostMembershipRole:
+      type: string
+      enum:
+      - LEADER
+      - ADMIN
+    HostMembershipStatus:
+      type: string
+      enum:
+      - ACTIVE
+      - INACTIVE
+      - REVOKED
+    HostApplicationStatus:
+      type: string
+      enum:
+      - SUBMITTED
+      - APPROVED
+      - REJECTED
+    HostDocumentType:
+      type: string
+      enum:
+      - KTP_DIREKSI
+      - NPWP_BADAN
+      - NIB_OSS
+      - AKTA_PENDIRIAN
+    InvitationStatus:
+      type: string
+      enum:
+      - PENDING
+      - ACCEPTED
+      - REVOKED
+      - EXPIRED
+    AuthSession:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            display_name:
+              type: string
+            capabilities:
+              type: array
+              items:
+                $ref: '#/components/schemas/CapabilityCode'
+    AuthSessionEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/AuthSession'
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+    CurrentUserEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            display_name:
+              type: string
+            capabilities:
+              type: array
+              items:
+                $ref: '#/components/schemas/CapabilityCode'
+            host_memberships:
+              type: array
+              items:
+                type: object
+                properties:
+                  organization_id:
+                    type: string
+                    format: uuid
+                  organization_name:
+                    type: string
+                  role:
+                    $ref: '#/components/schemas/HostMembershipRole'
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+    LogoutEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            logged_out:
+              type: boolean
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+    HostApplicationEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            application_id:
+              type: string
+              format: uuid
+            status:
+              $ref: '#/components/schemas/HostApplicationStatus'
+            submitted_at:
+              type: string
+              format: date-time
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+    MyHostApplicationEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            application_id:
+              type: string
+              format: uuid
+            status:
+              $ref: '#/components/schemas/HostApplicationStatus'
+            legal_name:
+              type: string
+            display_name:
+              type: string
+            documents_uploaded:
+              type: integer
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+    DocumentUploadEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            document_id:
+              type: string
+              format: uuid
+            object_key:
+              type: string
+              example: legal-documents/01927c8b-5a12-7800-b611-aaaa11112222/01927c8b-5a12-7800-b611-c11122223333.pdf
+            upload_url:
+              type: string
+              example: https://vault.galeriku.com/documents/0192.../nib.pdf?X-Amz-Signature=...
+            mime_type:
+              type: string
+            expires_in_seconds:
+              type: integer
+              example: 900
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+    DocumentViewEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            document_id:
+              type: string
+              format: uuid
+            view_url:
+              type: string
+            expires_in_seconds:
+              type: integer
+              example: 300
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+    HostOrganizationEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            legal_name:
+              type: string
+            display_name:
+              type: string
+            business_field:
+              type: string
+            verification_status:
+              $ref: '#/components/schemas/HostApplicationStatus'
+            max_admin_count:
+              type: integer
+              example: 5
+            current_admin_count:
+              type: integer
+              example: 2
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+    HostMembersEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            members:
+              type: array
+              items:
+                type: object
+                properties:
+                  membership_id:
+                    type: string
+                    format: uuid
+                  user_id:
+                    type: string
+                    format: uuid
+                  display_name:
+                    type: string
+                  role:
+                    $ref: '#/components/schemas/HostMembershipRole'
+                  status:
+                    $ref: '#/components/schemas/HostMembershipStatus'
+                  created_at:
+                    type: string
+                    format: date-time
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+    BankAccountEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            bank_code:
+              type: string
+              example: BCA
+            account_number_masked:
+              type: string
+              example: 1234xxxxxxxx3456
+            account_holder_name:
+              type: string
+            verification_status:
+              type: string
+              example: PENDING
+            created_at:
+              type: string
+              format: date-time
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+    BankAccountsEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            bank_accounts:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  bank_code:
+                    type: string
+                  account_number_masked:
+                    type: string
+                  account_holder_name:
+                    type: string
+                  verification_status:
+                    type: string
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+    InvitationEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            invitation_id:
+              type: string
+              format: uuid
+            status:
+              $ref: '#/components/schemas/InvitationStatus'
+            expires_at:
+              type: string
+              format: date-time
+            invitation_token:
+              type: string
+              description: Dikembalikan satu kali saat penerbitan; hanya hash SHA-256 yang disimpan.
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+    AcceptInvitationEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            status:
+              $ref: '#/components/schemas/HostMembershipStatus'
+            role:
+              $ref: '#/components/schemas/HostMembershipRole'
+            organization_id:
+              type: string
+              format: uuid
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+    ReviewEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            application_id:
+              type: string
+              format: uuid
+            status:
+              $ref: '#/components/schemas/HostApplicationStatus'
+            organization_status:
+              $ref: '#/components/schemas/HostApplicationStatus'
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+    UpdatedEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          additionalProperties: true
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+
     SuccessMeta:
       type: object
       properties:
@@ -633,6 +1555,42 @@ components:
           type: string
           format: date-time
   responses:
+    UnauthorizedError:
+      description: Kredensial tidak ada, tidak valid, atau kedaluwarsa
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    ForbiddenError:
+      description: Pemanggil tidak berwenang atas resource ini
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    NotFoundError:
+      description: Resource tidak ditemukan
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    ConflictError:
+      description: Konflik dengan keadaan saat ini
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    ValidationError:
+      description: Payload tidak valid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    RateLimitedError:
+      description: Batas laju terlampaui
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
     RateLimitExceeded:
       description: Batas frekuensi request terlampaui
       content:
@@ -651,3 +1609,13 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorEnvelope'
+
+  parameters:
+    OrganizationIdHeader:
+      name: X-Organization-ID
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Identitas organisasi Host target. Diverifikasi terhadap host_memberships sebelum request diteruskan.

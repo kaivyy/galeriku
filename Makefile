@@ -43,3 +43,13 @@ test: test-backend test-web typecheck lint-copy
 
 test-integration:
 	cd backend && go test -v ./...
+
+openapi-validate:
+	python3 backend/scripts/validate_openapi.py GALERIKU_OPENAPI_v1_DRAFT.yaml
+
+migrate-up:
+	cat migrations/000002_identity_and_sessions.up.sql | docker compose exec -T postgres psql -U $${DB_USER:-galeriku} -d $${DB_NAME:-galeriku_db}
+
+migrate-down:
+	cat migrations/000002_identity_and_sessions.down.sql | docker compose exec -T postgres psql -U $${DB_USER:-galeriku} -d $${DB_NAME:-galeriku_db}
+

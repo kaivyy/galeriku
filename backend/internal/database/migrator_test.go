@@ -62,7 +62,7 @@ func TestVerifySchemaCompleteness(t *testing.T) {
 		t.Fatalf("VerifySchemaCompleteness failed: %v", err)
 	}
 
-	const expectedTables = 76
+	const expectedTables = 81
 	if count < expectedTables {
 		t.Fatalf("expected at least %d tables, got %d", expectedTables, count)
 	}
