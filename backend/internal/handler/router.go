@@ -302,6 +302,32 @@ func SetupRoutesWithFinalize(pool *pgxpool.Pool, authHandler *AuthHandler, hostH
 	return middleware.CorrelationIDMiddleware(mux)
 }
 
+// registerPaymentRoutes mounts the Phase 6 payment, download, and fulfillment endpoints.
+func registerPaymentRoutes(mux *http.ServeMux, authMw func(http.Handler) http.Handler, paymentHandler *PaymentHandler) {
+	if paymentHandler == nil {
+		return
+	}
+	mux.Handle("POST /api/v1/payments/initiate", authMw(http.HandlerFunc(paymentHandler.InitiatePayment)))
+	mux.Handle("POST /api/v1/webhooks/payments/midtrans", http.HandlerFunc(paymentHandler.Webhook))
+	mux.Handle("POST /api/v1/downloads/grant/{id}", authMw(http.HandlerFunc(paymentHandler.GrantDownload)))
+	mux.Handle("GET /api/v1/downloads/file/{token}", http.HandlerFunc(paymentHandler.ServeDownload))
+	mux.Handle("POST /api/v1/fulfillment/upload-master/{id}", authMw(http.HandlerFunc(paymentHandler.UploadMaster)))
+}
+
+// SetupRoutesWithPayment wires the full Phase 6 surface on top of Phase 5.
+func SetupRoutesWithPayment(pool *pgxpool.Pool, authHandler *AuthHandler, hostHandler *HostApplicationHandler, membershipHandler *HostMembershipHandler, tenantRepo repository.TenantRepository, bankHandler *BankAccountHandler, invitationHandler *InvitationHandler, eventTreeHandler *EventTreeHandler, uploadHandler *UploadBatchHandler, multipartHandler *MultipartUploadHandler, finalizeHandler *BatchFinalizeHandler, discoveryHandler *DiscoveryHandler, paymentHandler *PaymentHandler, jwtSecret []byte) http.Handler {
+	mux := http.NewServeMux()
+	registerCoreRoutes(mux, pool, authHandler)
+	registerHostRoutes(mux, middleware.Authenticate(jwtSecret), hostHandler, membershipHandler, bankHandler, invitationHandler, tenantRepo)
+	registerFotoTreeRoutes(mux, middleware.Authenticate(jwtSecret), eventTreeHandler, tenantRepo)
+	registerStorageRoutes(mux, middleware.Authenticate(jwtSecret), uploadHandler, tenantRepo)
+	registerMultipartRoutes(mux, middleware.Authenticate(jwtSecret), multipartHandler, tenantRepo)
+	registerFinalizeRoutes(mux, middleware.Authenticate(jwtSecret), finalizeHandler, tenantRepo)
+	registerDiscoveryRoutes(mux, middleware.Authenticate(jwtSecret), discoveryHandler)
+	registerPaymentRoutes(mux, middleware.Authenticate(jwtSecret), paymentHandler)
+	return middleware.CorrelationIDMiddleware(mux)
+}
+
 // SetupRoutesWithDiscovery wires the complete Phase 5 surface on top of Phase 3.
 func SetupRoutesWithDiscovery(pool *pgxpool.Pool, authHandler *AuthHandler, hostHandler *HostApplicationHandler, membershipHandler *HostMembershipHandler, tenantRepo repository.TenantRepository, bankHandler *BankAccountHandler, invitationHandler *InvitationHandler, eventTreeHandler *EventTreeHandler, uploadHandler *UploadBatchHandler, multipartHandler *MultipartUploadHandler, finalizeHandler *BatchFinalizeHandler, discoveryHandler *DiscoveryHandler, jwtSecret []byte) http.Handler {
 	mux := http.NewServeMux()

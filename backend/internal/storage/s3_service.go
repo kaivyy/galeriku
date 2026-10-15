@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -122,6 +123,27 @@ func (s *S3Service) AbortMultipartUpload(ctx context.Context, objectKey, uploadI
 		return fmt.Errorf("failed to abort multipart upload: %w", err)
 	}
 	return nil
+}
+
+// PutPreviewObject stores one preview JPEG in the master vault under previews/.
+func (s *S3Service) PutPreviewObject(ctx context.Context, objectKey string, data []byte) error {
+	if !strings.HasPrefix(objectKey, "previews/") {
+		return errors.New("preview key is outside the previews prefix")
+	}
+	_, err := s.client.PutObject(ctx, BucketMasterVault, objectKey, bytes.NewReader(data), int64(len(data)),
+		minio.PutObjectOptions{ContentType: "image/jpeg"})
+	if err != nil {
+		return fmt.Errorf("failed to put preview object: %w", err)
+	}
+	return nil
+}
+
+// StreamObject opens one object for streaming through the response writer.
+func (s *S3Service) StreamObject(ctx context.Context, objectKey string) (*minio.Object, error) {
+	if !strings.HasPrefix(objectKey, rawUploadPrefix) && !strings.HasPrefix(objectKey, "previews/") && !strings.HasPrefix(objectKey, "hires/") {
+		return nil, errors.New("object key is outside the permitted download prefixes")
+	}
+	return s.client.GetObject(ctx, BucketMasterVault, objectKey, minio.GetObjectOptions{})
 }
 
 // StatObject returns the size of one object in the vault, used for quota reconciliation.
