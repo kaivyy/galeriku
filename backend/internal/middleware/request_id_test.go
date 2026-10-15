@@ -39,4 +39,7 @@ func TestCorrelationIDMiddleware(t *testing.T) {
 	if !strings.HasPrefix(resID, "req_") {
 		t.Errorf("expected auto-generated request ID to start with 'req_', got '%s'", resID)
 	}
+	if len(resID) != 36 {
+		t.Errorf("expected auto-generated request ID length 36, got %d ('%s')", len(resID), resID)
+	}
 }

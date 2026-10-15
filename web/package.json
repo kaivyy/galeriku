@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
+    "typecheck": "tsc --noEmit",
     "lint:copy": "node ./scripts/lint-copy.js"
   },
   "devDependencies": {

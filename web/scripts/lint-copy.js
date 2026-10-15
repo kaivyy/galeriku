@@ -31,6 +31,13 @@ function getSourceFiles(dir) {
   return files.sort();
 }
 
+const FORBIDDEN_EM_DASH_PATTERNS = [
+  '—',
+  '\\u2014',
+  '\\u{2014}',
+  '&mdash;',
+];
+
 /**
  * Antislop Hard Gate R-02 carve-out:
  * Code/comments that define the R-02 ban, validate it, or quote the character in error messages are exempt.
@@ -39,7 +46,8 @@ function isCarveOut(line) {
   return (
     line.includes('R-02') ||
     line.includes('validateAntislopCopy') ||
-    line.includes("text.includes('—')") ||
+    line.includes('FORBIDDEN_EM_DASH_PATTERNS') ||
+    line.includes('text.includes') ||
     line.includes('forbidden em dash') ||
     line.includes('antislop-carveout')
   );
@@ -66,10 +74,11 @@ function lintCopy() {
     const lines = content.split('\n');
 
     lines.forEach((line, index) => {
-      if (line.includes('—') && !isCarveOut(line)) {
+      const matches = FORBIDDEN_EM_DASH_PATTERNS.filter((pattern) => line.includes(pattern));
+      if (matches.length > 0 && !isCarveOut(line)) {
         violationCount++;
         console.error(
-          `[lint-copy] Violation in ${relativePath}:${index + 1}: Forbidden em dash ('—') found per Antislop Hard Gate R-02.\n  > ${line.trim()}`
+          `[lint-copy] Violation in ${relativePath}:${index + 1}: Forbidden em dash pattern (${matches.join(', ')}) found per Antislop Hard Gate R-02.\n  > ${line.trim()}`
         );
       }
     });

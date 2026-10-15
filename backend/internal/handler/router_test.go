@@ -14,7 +14,7 @@ import (
 	"github.com/galeriku/core/internal/database"
 )
 
-func TestHealthEndpointResponse(t *testing.T) {
+func TestHealthEndpoint_NilPool(t *testing.T) {
 	router := SetupRoutes(nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/health", nil)
@@ -22,8 +22,8 @@ func TestHealthEndpointResponse(t *testing.T) {
 
 	router.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Fatalf("expected status 200, got %d", rec.Code)
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected status 503, got %d", rec.Code)
 	}
 
 	var resp SuccessEnvelope
@@ -36,14 +36,14 @@ func TestHealthEndpointResponse(t *testing.T) {
 		t.Fatalf("expected data to be map[string]interface{}, got %T", resp.Data)
 	}
 
-	if dataMap["status"] != "UP" {
-		t.Errorf("expected status 'UP', got '%v'", dataMap["status"])
+	if dataMap["status"] != "DOWN" {
+		t.Errorf("expected status 'DOWN', got '%v'", dataMap["status"])
 	}
 	if dataMap["service"] != "galeriku-core-api" {
 		t.Errorf("expected service 'galeriku-core-api', got '%v'", dataMap["service"])
 	}
-	if dataMap["database"] != "UNKNOWN" {
-		t.Errorf("expected database 'UNKNOWN' when pool is nil, got '%v'", dataMap["database"])
+	if dataMap["database"] != "DISCONNECTED" {
+		t.Errorf("expected database 'DISCONNECTED' when pool is nil, got '%v'", dataMap["database"])
 	}
 	if resp.Meta.RequestID == "" || !strings.HasPrefix(resp.Meta.RequestID, "req_") {
 		t.Errorf("expected auto-generated request ID with prefix 'req_', got '%s'", resp.Meta.RequestID)
@@ -62,8 +62,8 @@ func TestHealthEndpoint_CustomRequestID(t *testing.T) {
 
 	router.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Fatalf("expected status 200, got %d", rec.Code)
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected status 503, got %d", rec.Code)
 	}
 
 	var resp SuccessEnvelope
@@ -94,12 +94,18 @@ func TestHealthEndpoint_WithDatabasePool(t *testing.T) {
 		dbPort = "5433"
 	}
 
+	sslMode := os.Getenv("DB_SSLMODE")
+	if sslMode == "" {
+		sslMode = "disable"
+	}
+
 	cfg := &config.Config{
 		DBHost:     dbHost,
 		DBPort:     dbPort,
 		DBUser:     "galeriku",
 		DBPassword: "galeriku_secret_pass",
 		DBName:     "galeriku_db",
+		DBSSLMode:  sslMode,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)

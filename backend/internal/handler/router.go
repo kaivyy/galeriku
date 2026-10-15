@@ -43,9 +43,13 @@ func SetupRoutes(pool *pgxpool.Pool) http.Handler {
 
 		overallStatus := "UP"
 		httpCode := http.StatusOK
-
 		dbStatus := "UNKNOWN"
-		if pool != nil {
+
+		if pool == nil {
+			overallStatus = "DOWN"
+			dbStatus = "DISCONNECTED"
+			httpCode = http.StatusServiceUnavailable
+		} else {
 			ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
 			defer cancel()
 			if err := pool.Ping(ctx); err == nil {

@@ -11,13 +11,19 @@ import (
 )
 
 func NewPostgresPool(ctx context.Context, cfg *config.Config) (*pgxpool.Pool, error) {
+	sslMode := cfg.DBSSLMode
+	if sslMode == "" {
+		sslMode = "disable"
+	}
+
 	dsn := fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
 		url.QueryEscape(cfg.DBUser),
 		url.QueryEscape(cfg.DBPassword),
 		cfg.DBHost,
 		cfg.DBPort,
 		cfg.DBName,
+		sslMode,
 	)
 
 	poolConfig, err := pgxpool.ParseConfig(dsn)

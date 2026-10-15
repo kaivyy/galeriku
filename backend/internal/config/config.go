@@ -12,6 +12,7 @@ type Config struct {
 	DBUser     string
 	DBPassword string
 	DBName     string
+	DBSSLMode  string
 	RedisHost  string
 	RedisPort  string
 	RabbitHost string
@@ -31,6 +32,7 @@ func LoadConfig() *Config {
 		DBUser:     getEnv("DB_USER", "galeriku"),
 		DBPassword: getEnv("DB_PASSWORD", "galeriku_secret_pass"),
 		DBName:     getEnv("DB_NAME", "galeriku_db"),
+		DBSSLMode:  getEnv("DB_SSLMODE", "disable"),
 		RedisHost:  getEnv("REDIS_HOST", "localhost"),
 		RedisPort:  getEnv("REDIS_PORT", "6379"),
 		RabbitHost: getEnv("RABBITMQ_HOST", "localhost"),

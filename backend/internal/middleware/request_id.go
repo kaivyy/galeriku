@@ -17,7 +17,7 @@ func CorrelationIDMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		reqID := r.Header.Get("X-Request-ID")
 		if reqID == "" {
-			reqID = "req_" + strings.ReplaceAll(uuid.New().String()[:12], "-", "")
+			reqID = "req_" + strings.ReplaceAll(uuid.New().String(), "-", "")
 		}
 
 		ctx := context.WithValue(r.Context(), RequestIDKey, reqID)

@@ -1,4 +1,4 @@
-.PHONY: all help up down logs ps build test test-backend test-web lint-copy migrate-up migrate-down
+.PHONY: all help up down logs ps build test test-backend test-web test-integration typecheck lint-copy migrate-up migrate-down
 
 help:
 	@echo "Galeriku Management Makefile"
@@ -10,8 +10,10 @@ help:
 	@echo "  make migrate-down- Revert initial SQL migration 000001"
 	@echo "  make test-backend- Run backend Go tests (short mode)"
 	@echo "  make test-web    - Run web TypeScript/Vitest tests"
-	@echo "  make test        - Run both backend and web tests"
+	@echo "  make typecheck   - Run web TypeScript type checking"
 	@echo "  make lint-copy   - Run antislop copywriting em-dash linter"
+	@echo "  make test        - Run backend, web, typecheck, and lint-copy tests"
+	@echo "  make test-integration - Run full backend integration tests with Docker"
 
 up:
 	docker compose up -d
@@ -31,7 +33,13 @@ test-backend:
 test-web:
 	cd web && npm test
 
-test: test-backend test-web
+typecheck:
+	cd web && npm run typecheck
 
 lint-copy:
 	cd web && npm run lint:copy
+
+test: test-backend test-web typecheck lint-copy
+
+test-integration:
+	cd backend && go test -v ./...
