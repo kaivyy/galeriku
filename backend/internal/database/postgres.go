@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/galeriku/core/internal/config"
@@ -12,7 +13,11 @@ import (
 func NewPostgresPool(ctx context.Context, cfg *config.Config) (*pgxpool.Pool, error) {
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName,
+		url.QueryEscape(cfg.DBUser),
+		url.QueryEscape(cfg.DBPassword),
+		cfg.DBHost,
+		cfg.DBPort,
+		cfg.DBName,
 	)
 
 	poolConfig, err := pgxpool.ParseConfig(dsn)

@@ -44,6 +44,9 @@ func SetupRoutes(pool *pgxpool.Pool) *http.ServeMux {
 			reqID = "req_" + uuid.New().String()[:12]
 		}
 
+		overallStatus := "UP"
+		httpCode := http.StatusOK
+
 		dbStatus := "UNKNOWN"
 		if pool != nil {
 			ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
@@ -52,12 +55,14 @@ func SetupRoutes(pool *pgxpool.Pool) *http.ServeMux {
 				dbStatus = "UP"
 			} else {
 				dbStatus = "DOWN"
+				overallStatus = "DEGRADED"
+				httpCode = http.StatusServiceUnavailable
 			}
 		}
 
 		resp := SuccessEnvelope{
 			Data: map[string]interface{}{
-				"status":    "UP",
+				"status":    overallStatus,
 				"service":   "galeriku-core-api",
 				"version":   "0.1.0-draft",
 				"database":  dbStatus,
@@ -69,7 +74,7 @@ func SetupRoutes(pool *pgxpool.Pool) *http.ServeMux {
 			},
 		}
 
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(httpCode)
 		json.NewEncoder(w).Encode(resp)
 	})
 

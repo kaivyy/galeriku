@@ -74,13 +74,22 @@ func TestHealthEndpoint_CustomRequestID(t *testing.T) {
 }
 
 func TestHealthEndpoint_WithDatabasePool(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping live database test in short mode")
+	}
+
+	dbHost := os.Getenv("DB_HOST")
+	if dbHost == "" {
+		dbHost = "localhost"
+	}
+
 	dbPort := os.Getenv("DB_PORT")
 	if dbPort == "" {
 		dbPort = "5433"
 	}
 
 	cfg := &config.Config{
-		DBHost:     "localhost",
+		DBHost:     dbHost,
 		DBPort:     dbPort,
 		DBUser:     "galeriku",
 		DBPassword: "galeriku_secret_pass",
@@ -115,6 +124,9 @@ func TestHealthEndpoint_WithDatabasePool(t *testing.T) {
 		t.Fatalf("expected data to be map[string]interface{}, got %T", resp.Data)
 	}
 
+	if dataMap["status"] != "UP" {
+		t.Errorf("expected status 'UP', got '%v'", dataMap["status"])
+	}
 	if dataMap["database"] != "UP" {
 		t.Errorf("expected database status 'UP', got '%v'", dataMap["database"])
 	}
@@ -123,6 +135,10 @@ func TestHealthEndpoint_WithDatabasePool(t *testing.T) {
 	pool.Close()
 	recClosed := httptest.NewRecorder()
 	router.ServeHTTP(recClosed, req)
+
+	if recClosed.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected status 503, got %d", recClosed.Code)
+	}
 
 	var respClosed SuccessEnvelope
 	if err := json.Unmarshal(recClosed.Body.Bytes(), &respClosed); err != nil {
@@ -134,6 +150,9 @@ func TestHealthEndpoint_WithDatabasePool(t *testing.T) {
 		t.Fatalf("expected data to be map[string]interface{}, got %T", respClosed.Data)
 	}
 
+	if dataClosedMap["status"] != "DEGRADED" {
+		t.Errorf("expected status 'DEGRADED' after pool closed, got '%v'", dataClosedMap["status"])
+	}
 	if dataClosedMap["database"] != "DOWN" {
 		t.Errorf("expected database status 'DOWN' after pool closed, got '%v'", dataClosedMap["database"])
 	}
