@@ -125,12 +125,12 @@ func TestAuthRepository_OTPChallenges(t *testing.T) {
 	codeHash := "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 
 	challenge := &domain.OTPChallenge{
-		PhoneE164:    &phone,
-		Purpose:      "PHONE_VERIFICATION",
-		CodeHash:     codeHash,
-		MaxAttempts:  3,
-		Status:       "PENDING",
-		ExpiresAt:    time.Now().Add(3 * time.Minute),
+		PhoneE164:   &phone,
+		Purpose:     "PHONE_VERIFICATION",
+		CodeHash:    codeHash,
+		MaxAttempts: 3,
+		Status:      "PENDING",
+		ExpiresAt:   time.Now().Add(3 * time.Minute),
 	}
 
 	// 1. Create OTP challenge

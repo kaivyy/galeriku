@@ -21,17 +21,17 @@ import (
 )
 
 var (
-	ErrInvalidInput         = errors.New("invalid request payload")
-	ErrInvalidCredentials   = errors.New("invalid identifier or password")
-	ErrAccountInactive      = errors.New("account is suspended or inactive")
-	ErrTooManyRequests      = errors.New("rate limit exceeded, please retry later")
-	ErrInvalidToken         = errors.New("invalid or malformed refresh token")
-	ErrTokenExpired         = errors.New("refresh token has expired")
-	ErrTokenCompromised     = errors.New("token reuse detected, session terminated")
-	ErrInvalidOTP           = errors.New("invalid or expired OTP challenge")
-	ErrOTPExpired           = errors.New("OTP challenge has expired")
-	ErrMaxAttemptsExceeded  = errors.New("maximum OTP verification attempts exceeded")
-	ErrIncorrectOTP         = errors.New("incorrect OTP verification code")
+	ErrInvalidInput        = errors.New("invalid request payload")
+	ErrInvalidCredentials  = errors.New("invalid identifier or password")
+	ErrAccountInactive     = errors.New("account is suspended or inactive")
+	ErrTooManyRequests     = errors.New("rate limit exceeded, please retry later")
+	ErrInvalidToken        = errors.New("invalid or malformed refresh token")
+	ErrTokenExpired        = errors.New("refresh token has expired")
+	ErrTokenCompromised    = errors.New("token reuse detected, session terminated")
+	ErrInvalidOTP          = errors.New("invalid or expired OTP challenge")
+	ErrOTPExpired          = errors.New("OTP challenge has expired")
+	ErrMaxAttemptsExceeded = errors.New("maximum OTP verification attempts exceeded")
+	ErrIncorrectOTP        = errors.New("incorrect OTP verification code")
 )
 
 type AuthUsecase interface {

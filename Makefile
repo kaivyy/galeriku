@@ -48,8 +48,8 @@ openapi-validate:
 	python3 backend/scripts/validate_openapi.py GALERIKU_OPENAPI_v1_DRAFT.yaml
 
 migrate-up:
-	cat migrations/000002_identity_and_sessions.up.sql | docker compose exec -T postgres psql -U $${DB_USER:-galeriku} -d $${DB_NAME:-galeriku_db}
+	for f in migrations/*.up.sql; do cat $$f | docker compose exec -T postgres psql -U $${DB_USER:-galeriku} -d $${DB_NAME:-galeriku_db} || exit 1; done
 
 migrate-down:
-	cat migrations/000002_identity_and_sessions.down.sql | docker compose exec -T postgres psql -U $${DB_USER:-galeriku} -d $${DB_NAME:-galeriku_db}
+	for f in $$(ls -r migrations/*.down.sql); do cat $$f | docker compose exec -T postgres psql -U $${DB_USER:-galeriku} -d $${DB_NAME:-galeriku_db} || exit 1; done
 

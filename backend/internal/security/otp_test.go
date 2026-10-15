@@ -97,14 +97,14 @@ func TestValidateOTPFormat(t *testing.T) {
 	}
 
 	invalidCodes := []string{
-		"",         // empty
-		"12345",    // 5 digits (too short)
-		"1234567",  // 7 digits (too long)
-		"12345a",   // alphanumeric
-		"abcdef",   // alpha
-		" 123456",  // leading space
-		"123456 ",  // trailing space
-		"12-345",   // hyphen
+		"",        // empty
+		"12345",   // 5 digits (too short)
+		"1234567", // 7 digits (too long)
+		"12345a",  // alphanumeric
+		"abcdef",  // alpha
+		" 123456", // leading space
+		"123456 ", // trailing space
+		"12-345",  // hyphen
 	}
 	for _, c := range invalidCodes {
 		if security.ValidateOTPFormat(c) {

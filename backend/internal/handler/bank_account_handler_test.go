@@ -23,15 +23,15 @@ import (
 )
 
 type bankTestEnv struct {
-	pool    *pgxpool.Pool
-	router  http.Handler
-	secret  []byte
-	leader  string
-	admin   string
+	pool     *pgxpool.Pool
+	router   http.Handler
+	secret   []byte
+	leader   string
+	admin    string
 	stranger string
-	orgID   uuid.UUID
+	orgID    uuid.UUID
 	leaderID uuid.UUID
-	cleanup func()
+	cleanup  func()
 }
 
 func newBankTestEnv(t *testing.T) *bankTestEnv {

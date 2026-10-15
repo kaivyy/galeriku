@@ -49,11 +49,11 @@ type ApplyHostResult struct {
 
 // MyApplicationResult is the response payload for GET /hosts/applications/my.
 type MyApplicationResult struct {
-	ApplicationID    string `json:"application_id"`
-	Status           string `json:"status"`
-	LegalName        string `json:"legal_name"`
-	DisplayName      string `json:"display_name"`
-	DocumentsUploaded int   `json:"documents_uploaded"`
+	ApplicationID     string `json:"application_id"`
+	Status            string `json:"status"`
+	LegalName         string `json:"legal_name"`
+	DisplayName       string `json:"display_name"`
+	DocumentsUploaded int    `json:"documents_uploaded"`
 }
 
 // DocumentUploadRequest is the validated input for POST /hosts/documents.
@@ -92,10 +92,10 @@ func NewHostApplicationUsecase(repo repository.HostRepository, s3 *storage.S3Ser
 }
 
 var allowedDocumentTypes = map[string]bool{
-	domain.HostDocumentTypeKTP:   true,
-	domain.HostDocumentTypeNPWP:  true,
-	domain.HostDocumentTypeNIB:   true,
-	domain.HostDocumentTypeAKTA:  true,
+	domain.HostDocumentTypeKTP:  true,
+	domain.HostDocumentTypeNPWP: true,
+	domain.HostDocumentTypeNIB:  true,
+	domain.HostDocumentTypeAKTA: true,
 }
 
 func (u *hostApplicationUsecase) Apply(ctx context.Context, userID uuid.UUID, req ApplyHostRequest) (*ApplyHostResult, error) {

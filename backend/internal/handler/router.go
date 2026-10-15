@@ -194,3 +194,93 @@ func SetupRoutesWithInvitations(pool *pgxpool.Pool, authHandler *AuthHandler, ho
 	registerHostRoutes(mux, middleware.Authenticate(jwtSecret), hostHandler, membershipHandler, bankHandler, invitationHandler, tenantRepo)
 	return middleware.CorrelationIDMiddleware(mux)
 }
+
+// registerFotoTreeRoutes mounts the Phase 3 event, session, and route location endpoints.
+// Every route requires an authenticated caller who is an ACTIVE member of the target Host
+// organization, resolved from the verified TenantContext.
+func registerFotoTreeRoutes(mux *http.ServeMux, authMw func(http.Handler) http.Handler, eventTreeHandler *EventTreeHandler, tenantRepo repository.TenantRepository) {
+	if eventTreeHandler == nil || tenantRepo == nil {
+		return
+	}
+	anyMember := middleware.RequireHostMembership(tenantRepo)
+
+	mux.Handle("POST /api/v1/events", authMw(anyMember(http.HandlerFunc(eventTreeHandler.CreateEvent))))
+	mux.Handle("GET /api/v1/events", authMw(anyMember(http.HandlerFunc(eventTreeHandler.ListEvents))))
+	mux.Handle("GET /api/v1/events/{id}", authMw(anyMember(http.HandlerFunc(eventTreeHandler.GetEventTree))))
+	mux.Handle("PUT /api/v1/events/{id}", authMw(anyMember(http.HandlerFunc(eventTreeHandler.UpdateEvent))))
+	mux.Handle("POST /api/v1/events/{id}/sessions", authMw(anyMember(http.HandlerFunc(eventTreeHandler.CreateSession))))
+	mux.Handle("POST /api/v1/events/{id}/locations", authMw(anyMember(http.HandlerFunc(eventTreeHandler.CreateLocation))))
+}
+
+// SetupRoutesWithFotoTree wires the Phase 3 FotoTree hierarchy endpoints.
+func SetupRoutesWithFotoTree(pool *pgxpool.Pool, authHandler *AuthHandler, hostHandler *HostApplicationHandler, membershipHandler *HostMembershipHandler, tenantRepo repository.TenantRepository, bankHandler *BankAccountHandler, invitationHandler *InvitationHandler, eventTreeHandler *EventTreeHandler, jwtSecret []byte) http.Handler {
+	mux := http.NewServeMux()
+	registerCoreRoutes(mux, pool, authHandler)
+	registerHostRoutes(mux, middleware.Authenticate(jwtSecret), hostHandler, membershipHandler, bankHandler, invitationHandler, tenantRepo)
+	registerFotoTreeRoutes(mux, middleware.Authenticate(jwtSecret), eventTreeHandler, tenantRepo)
+	return middleware.CorrelationIDMiddleware(mux)
+}
+
+// registerStorageRoutes mounts the Phase 3 quota and mass upload reservation endpoints.
+func registerStorageRoutes(mux *http.ServeMux, authMw func(http.Handler) http.Handler, uploadHandler *UploadBatchHandler, tenantRepo repository.TenantRepository) {
+	if uploadHandler == nil || tenantRepo == nil {
+		return
+	}
+	anyMember := middleware.RequireHostMembership(tenantRepo)
+	mux.Handle("GET /api/v1/storage/quota", authMw(anyMember(http.HandlerFunc(uploadHandler.GetQuota))))
+	mux.Handle("POST /api/v1/storage/upload-batches/initiate", authMw(anyMember(http.HandlerFunc(uploadHandler.InitiateBatch))))
+}
+
+// SetupRoutesWithUploads wires the Phase 3 storage quota and upload batch reservation endpoints.
+func SetupRoutesWithUploads(pool *pgxpool.Pool, authHandler *AuthHandler, hostHandler *HostApplicationHandler, membershipHandler *HostMembershipHandler, tenantRepo repository.TenantRepository, bankHandler *BankAccountHandler, invitationHandler *InvitationHandler, eventTreeHandler *EventTreeHandler, uploadHandler *UploadBatchHandler, jwtSecret []byte) http.Handler {
+	mux := http.NewServeMux()
+	registerCoreRoutes(mux, pool, authHandler)
+	registerHostRoutes(mux, middleware.Authenticate(jwtSecret), hostHandler, membershipHandler, bankHandler, invitationHandler, tenantRepo)
+	registerFotoTreeRoutes(mux, middleware.Authenticate(jwtSecret), eventTreeHandler, tenantRepo)
+	registerStorageRoutes(mux, middleware.Authenticate(jwtSecret), uploadHandler, tenantRepo)
+	return middleware.CorrelationIDMiddleware(mux)
+}
+
+// registerMultipartRoutes mounts the Phase 3 direct-to-S3 multipart upload endpoints.
+func registerMultipartRoutes(mux *http.ServeMux, authMw func(http.Handler) http.Handler, multipartHandler *MultipartUploadHandler, tenantRepo repository.TenantRepository) {
+	if multipartHandler == nil || tenantRepo == nil {
+		return
+	}
+	anyMember := middleware.RequireHostMembership(tenantRepo)
+	mux.Handle("POST /api/v1/storage/multipart/initiate", authMw(anyMember(http.HandlerFunc(multipartHandler.Initiate))))
+	mux.Handle("POST /api/v1/storage/multipart/sign-part", authMw(anyMember(http.HandlerFunc(multipartHandler.SignPart))))
+	mux.Handle("POST /api/v1/storage/multipart/complete", authMw(anyMember(http.HandlerFunc(multipartHandler.Complete))))
+}
+
+// registerFinalizeRoutes mounts the Phase 3 batch finalization endpoint.
+func registerFinalizeRoutes(mux *http.ServeMux, authMw func(http.Handler) http.Handler, finalizeHandler *BatchFinalizeHandler, tenantRepo repository.TenantRepository) {
+	if finalizeHandler == nil || tenantRepo == nil {
+		return
+	}
+	anyMember := middleware.RequireHostMembership(tenantRepo)
+	mux.Handle("POST /api/v1/storage/upload-batches/{id}/finalize", authMw(anyMember(http.HandlerFunc(finalizeHandler.Finalize))))
+}
+
+// SetupRoutesWithMultipart wires the Phase 3 multipart upload endpoints.
+func SetupRoutesWithMultipart(pool *pgxpool.Pool, authHandler *AuthHandler, hostHandler *HostApplicationHandler, membershipHandler *HostMembershipHandler, tenantRepo repository.TenantRepository, bankHandler *BankAccountHandler, invitationHandler *InvitationHandler, eventTreeHandler *EventTreeHandler, uploadHandler *UploadBatchHandler, multipartHandler *MultipartUploadHandler, jwtSecret []byte) http.Handler {
+	mux := http.NewServeMux()
+	registerCoreRoutes(mux, pool, authHandler)
+	registerHostRoutes(mux, middleware.Authenticate(jwtSecret), hostHandler, membershipHandler, bankHandler, invitationHandler, tenantRepo)
+	registerFotoTreeRoutes(mux, middleware.Authenticate(jwtSecret), eventTreeHandler, tenantRepo)
+	registerStorageRoutes(mux, middleware.Authenticate(jwtSecret), uploadHandler, tenantRepo)
+	registerMultipartRoutes(mux, middleware.Authenticate(jwtSecret), multipartHandler, tenantRepo)
+	return middleware.CorrelationIDMiddleware(mux)
+}
+
+// SetupRoutesWithFinalize wires the complete Phase 3 surface: FotoTree, quota reservation,
+// multipart upload, and batch finalization.
+func SetupRoutesWithFinalize(pool *pgxpool.Pool, authHandler *AuthHandler, hostHandler *HostApplicationHandler, membershipHandler *HostMembershipHandler, tenantRepo repository.TenantRepository, bankHandler *BankAccountHandler, invitationHandler *InvitationHandler, eventTreeHandler *EventTreeHandler, uploadHandler *UploadBatchHandler, multipartHandler *MultipartUploadHandler, finalizeHandler *BatchFinalizeHandler, jwtSecret []byte) http.Handler {
+	mux := http.NewServeMux()
+	registerCoreRoutes(mux, pool, authHandler)
+	registerHostRoutes(mux, middleware.Authenticate(jwtSecret), hostHandler, membershipHandler, bankHandler, invitationHandler, tenantRepo)
+	registerFotoTreeRoutes(mux, middleware.Authenticate(jwtSecret), eventTreeHandler, tenantRepo)
+	registerStorageRoutes(mux, middleware.Authenticate(jwtSecret), uploadHandler, tenantRepo)
+	registerMultipartRoutes(mux, middleware.Authenticate(jwtSecret), multipartHandler, tenantRepo)
+	registerFinalizeRoutes(mux, middleware.Authenticate(jwtSecret), finalizeHandler, tenantRepo)
+	return middleware.CorrelationIDMiddleware(mux)
+}

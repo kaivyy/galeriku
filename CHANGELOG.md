@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 3: FotoTree & Direct-to-S3 Multipart Upload (Completed)
+
+#### Added - Task 3.1: FotoTree Hierarchy Management
+- Implemented event, session, and route location CRUD in [`backend/internal/usecase/event_tree_usecase.go`](file:///root/galeriku/backend/internal/usecase/event_tree_usecase.go) with `POST`/`GET /api/v1/events`, `GET`/`PUT /api/v1/events/{id}`, `POST /api/v1/events/{id}/sessions`, and `POST /api/v1/events/{id}/locations`. Every route is mounted behind `Authenticate` plus `RequireHostMembership`, and the organization always comes from the verified TenantContext.
+
+#### Added - Task 3.2: Atomic Quota Reservation (DEC-Q03)
+- Implemented `GET /api/v1/storage/quota` and `POST /api/v1/storage/upload-batches/initiate` in [`backend/internal/repository/upload_repository.go`](file:///root/galeriku/backend/internal/repository/upload_repository.go). The reservation locks the quota row with `SELECT ... FOR UPDATE` before checking the balance, so concurrent batches cannot oversubscribe an account; a concurrency test drives ten parallel initiations against a one-gigabyte quota and proves the limit holds.
+
+#### Added - Task 3.3: S3 Multipart Presigned Direct Upload
+- Implemented `POST /api/v1/storage/multipart/initiate`, `/sign-part`, and `/complete` in [`backend/internal/usecase/multipart_upload_usecase.go`](file:///root/galeriku/backend/internal/usecase/multipart_upload_usecase.go). Object keys are composed from typed UUIDs under `raw-uploads/{org_id}/{batch_id}/`, and the integration test uploads real parts to MinIO and completes the session with the ETags the provider returned.
+
+#### Fixed - Task 3.3: Multipart Provider Identifier Column Type
+- Migration [`000003_multipart_provider_upload_id.up.sql`](file:///root/galeriku/migrations/000003_multipart_provider_upload_id.up.sql) widens `multipart_upload_sessions.provider_upload_id` from `UUID` to `TEXT`. Migration 000001 declared a UUID column, but object storage providers return opaque identifiers (MinIO returns a 124-character base64 value), so no real multipart session could be recorded.
+
+#### Added - Task 3.4: Batch Finalization & RabbitMQ Dispatch
+- Implemented `POST /api/v1/storage/upload-batches/{id}/finalize` in [`backend/internal/usecase/batch_finalize_usecase.go`](file:///root/galeriku/backend/internal/usecase/batch_finalize_usecase.go). Finalization releases the reservation and bills the measured object size in one transaction, appends a `storage_usage_entries` record, and queues one pending `ai_jobs` row per uploaded object with an idempotency key.
+- Added the RabbitMQ publisher in [`backend/internal/messaging/rabbit_publisher.go`](file:///root/galeriku/backend/internal/messaging/rabbit_publisher.go), publishing persistent `photo.uploaded` events to a durable queue after the reconciliation commits.
+- The `migrate-up` and `migrate-down` Makefile targets now apply every migration in the directory in order instead of hardcoding a single version.
+
 ### Phase 2: Identity, Authentication & Host B2B Portal (In Progress)
 
 #### Added - Tasks 2.5 to 2.10: Host B2B Portal, Payouts, Invitations, Audit & Contracts

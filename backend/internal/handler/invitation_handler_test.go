@@ -23,15 +23,15 @@ import (
 )
 
 type invitationTestEnv struct {
-	pool     *pgxpool.Pool
-	router   http.Handler
-	secret   []byte
-	orgID    uuid.UUID
-	leader   string
-	admin    string
-	invitee  string
+	pool         *pgxpool.Pool
+	router       http.Handler
+	secret       []byte
+	orgID        uuid.UUID
+	leader       string
+	admin        string
+	invitee      string
 	inviteeEmail string
-	cleanup  func()
+	cleanup      func()
 }
 
 func newInvitationTestEnv(t *testing.T) *invitationTestEnv {

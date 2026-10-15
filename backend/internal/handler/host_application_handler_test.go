@@ -169,10 +169,10 @@ func TestHostApplicationFlow_ApplyListAndUpload(t *testing.T) {
 
 	// 2. Authenticated apply creates the organization and application as SUBMITTED.
 	rec, parsed = env.do(t, http.MethodPost, "/api/v1/hosts/apply", map[string]string{
-		"legal_name":    "PT Generasi Olahraga Hebat",
-		"display_name":  "Jakarta Marathon Organizer",
+		"legal_name":     "PT Generasi Olahraga Hebat",
+		"display_name":   "Jakarta Marathon Organizer",
 		"business_field": "Sport Event Organizer",
-		"address_text":  "Jl. Sudirman Kav 20, Jakarta Selatan",
+		"address_text":   "Jl. Sudirman Kav 20, Jakarta Selatan",
 	}, true)
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("expected 201 Created, got %d (body: %s)", rec.Code, rec.Body.String())

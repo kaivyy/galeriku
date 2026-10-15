@@ -224,10 +224,24 @@ func TestMigration000002_Rollback_And_Reapply(t *testing.T) {
 
 	migrationsDir := filepath.Join("..", "..", "..", "migrations")
 
-	// Ensure 000002 is applied before testing rollback
-	_, err := RunPendingMigrations(ctx, pool, migrationsDir)
-	if err != nil {
+	// Ensure every migration is applied before testing rollback.
+	if _, err := RunPendingMigrations(ctx, pool, migrationsDir); err != nil {
 		t.Fatalf("RunPendingMigrations failed: %v", err)
+	}
+
+	// Roll back migrations newer than 000002 first, so this test always exercises the
+	// 000002 rollback regardless of how many later migrations exist.
+	for {
+		var latest string
+		if err := pool.QueryRow(ctx, "SELECT version FROM schema_migrations ORDER BY version DESC LIMIT 1").Scan(&latest); err != nil {
+			t.Fatalf("failed to read latest migration version: %v", err)
+		}
+		if latest == "000002" {
+			break
+		}
+		if _, err := RollbackLastMigration(ctx, pool, migrationsDir); err != nil {
+			t.Fatalf("failed to roll back migration %s: %v", latest, err)
+		}
 	}
 
 	// Rollback migration 000002
@@ -257,14 +271,16 @@ func TestMigration000002_Rollback_And_Reapply(t *testing.T) {
 	}
 	t.Logf("Rollback Verification PASS: user_credentials table dropped cleanly")
 
-	// Re-apply migration 000002
+	// Re-apply every migration from 000002 onward. Later migrations are re-applied too,
+	// so the expected count is whichever versions are currently pending.
 	reappliedCount, err := RunPendingMigrations(ctx, pool, migrationsDir)
 	if err != nil {
 		t.Fatalf("re-applying RunPendingMigrations failed: %v", err)
 	}
-	if reappliedCount != 1 {
-		t.Fatalf("expected 1 migration re-applied, got %d", reappliedCount)
+	if reappliedCount < 1 {
+		t.Fatalf("expected at least 1 migration re-applied (000002), got %d", reappliedCount)
 	}
+	t.Logf("Re-applied %d migration(s)", reappliedCount)
 
 	// Verify table count is back to 81
 	count, err := VerifySchemaCompleteness(ctx, pool)
@@ -276,4 +292,3 @@ func TestMigration000002_Rollback_And_Reapply(t *testing.T) {
 	}
 	t.Logf("Re-apply Verification PASS: successfully restored 81 tables and verified schema completeness")
 }
-

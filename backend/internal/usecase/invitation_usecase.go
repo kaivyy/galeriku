@@ -32,10 +32,10 @@ type CreateInvitationRequest struct {
 
 // CreateInvitationResult returns the raw token exactly once, at issuance.
 type CreateInvitationResult struct {
-	InvitationID   string    `json:"invitation_id"`
-	Status         string    `json:"status"`
-	ExpiresAt      time.Time `json:"expires_at"`
-	InvitationToken string   `json:"invitation_token"`
+	InvitationID    string    `json:"invitation_id"`
+	Status          string    `json:"status"`
+	ExpiresAt       time.Time `json:"expires_at"`
+	InvitationToken string    `json:"invitation_token"`
 }
 
 // AcceptInvitationResult confirms the new membership.

@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	ErrTokenNotFound     = errors.New("refresh token not found")
-	ErrChallengeNotFound = errors.New("OTP challenge not found")
+	ErrTokenNotFound       = errors.New("refresh token not found")
+	ErrChallengeNotFound   = errors.New("OTP challenge not found")
 	ErrTokenAlreadyRevoked = errors.New("refresh token is already revoked")
 )
 

@@ -196,4 +196,3 @@ func RollbackLastMigration(ctx context.Context, pool *pgxpool.Pool, migrationsDi
 
 	return latestVersion, nil
 }
-

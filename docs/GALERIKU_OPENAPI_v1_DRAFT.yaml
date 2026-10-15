@@ -1038,6 +1038,232 @@ paths:
                 $ref: '#/components/schemas/ReviewEnvelope'
         '403':
           $ref: '#/components/responses/ForbiddenError'
+  /storage/quota:
+    get:
+      summary: Status kuota penyimpanan organisasi
+      description: Mengembalikan limit, pemakaian tertagih, bytes terreservasi, dan sisa kuota.
+      security:
+      - BearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/OrganizationIdHeader'
+      responses:
+        '200':
+          description: Ringkasan kuota
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageQuotaEnvelope'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /storage/upload-batches/initiate:
+    post:
+      summary: Inisiasi batch upload massal dan reservasi kuota atomik (DEC-Q03)
+      description: Mengunci baris kuota dengan SELECT FOR UPDATE sebelum reservasi dibuat, sehingga batch konkuren tidak dapat melampaui limit.
+      security:
+      - BearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/OrganizationIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - total_files
+              - total_bytes
+              - files
+              properties:
+                event_id:
+                  type: string
+                  format: uuid
+                total_files:
+                  type: integer
+                  minimum: 1
+                  maximum: 2000
+                total_bytes:
+                  type: integer
+                  format: int64
+                files:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                    - client_file_token
+                    - expected_bytes
+                    properties:
+                      client_file_token:
+                        type: string
+                      original_filename:
+                        type: string
+                      expected_bytes:
+                        type: integer
+                        format: int64
+      responses:
+        '201':
+          description: Batch terreservasi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadBatchEnvelope'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          description: Kuota tidak mencukupi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /storage/multipart/initiate:
+    post:
+      summary: Inisiasi sesi upload multipart S3
+      description: Membuka sesi multipart pada bucket privat dengan object key yang dibentuk dari UUID bertipe di bawah prefix raw-uploads/.
+      security:
+      - BearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/OrganizationIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - upload_batch_id
+              - client_file_token
+              properties:
+                upload_batch_id:
+                  type: string
+                  format: uuid
+                client_file_token:
+                  type: string
+      responses:
+        '200':
+          description: Sesi multipart dibuka
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MultipartInitiateEnvelope'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+  /storage/multipart/sign-part:
+    post:
+      summary: Presigned PUT URL per part (Direct-to-S3)
+      description: Menerbitkan presigned URL berumur 30 menit untuk satu part. Nomor part dibatasi 1 sampai 10000.
+      security:
+      - BearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/OrganizationIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - upload_item_id
+              - part_number
+              properties:
+                upload_item_id:
+                  type: string
+                  format: uuid
+                part_number:
+                  type: integer
+                  minimum: 1
+                  maximum: 10000
+      responses:
+        '200':
+          description: Presigned part URL diterbitkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MultipartSignPartEnvelope'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /storage/multipart/complete:
+    post:
+      summary: Menutup sesi upload multipart
+      description: Menyelesaikan sesi dengan ETag asli dari object storage, lalu mencatat ukuran objek yang terukur sebagai actual_bytes.
+      security:
+      - BearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/OrganizationIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - upload_item_id
+              - parts
+              properties:
+                upload_item_id:
+                  type: string
+                  format: uuid
+                parts:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required:
+                    - part_number
+                    - etag
+                    properties:
+                      part_number:
+                        type: integer
+                      etag:
+                        type: string
+                sha256_checksum:
+                  type: string
+      responses:
+        '200':
+          description: Sesi ditutup
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MultipartCompleteEnvelope'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+  /storage/upload-batches/{id}/finalize:
+    post:
+      summary: Finalisasi batch dan rekonsiliasi kuota
+      description: Merelease reservasi dan menagihkan ukuran objek terukur dalam satu transaksi, menulis storage_usage_entries, dan mengantrikan satu ai_jobs PENDING per objek. Event photo.uploaded dikirim ke RabbitMQ setelah transaksi commit.
+      security:
+      - BearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/OrganizationIdHeader'
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Batch difinalisasi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchFinalizeEnvelope'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
 components:
   securitySchemes:
     BearerAuth:
@@ -1046,6 +1272,136 @@ components:
       bearerFormat: JWT
       description: Token JWT berumur pendek untuk autentikasi pengguna.
   schemas:
+    StorageQuotaEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            quota_limit_bytes:
+              type: integer
+              format: int64
+            billable_bytes:
+              type: integer
+              format: int64
+            reserved_bytes:
+              type: integer
+              format: int64
+            remaining_bytes:
+              type: integer
+              format: int64
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+    UploadBatchEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            upload_batch_id:
+              type: string
+              format: uuid
+            status:
+              type: string
+              example: RESERVED
+            reserved_bytes:
+              type: integer
+              format: int64
+            reservation_expires_at:
+              type: string
+              format: date-time
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+    MultipartInitiateEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            upload_item_id:
+              type: string
+              format: uuid
+            provider_upload_id:
+              type: string
+              description: Identitas sesi multipart dari object storage. Berupa string opaque, bukan UUID.
+            s3_object_key:
+              type: string
+              example: raw-uploads/01927c8b-5a12-7800-b611-aaaa11112222/01927c8b-5a12-7800-b611-bbbb22223333/01927c8b-5a12-7800-b611-cccc33334444.jpg
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+    MultipartSignPartEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            part_number:
+              type: integer
+            presigned_url:
+              type: string
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+    MultipartCompleteEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            upload_item_id:
+              type: string
+              format: uuid
+            status:
+              type: string
+              example: COMPLETED
+            object_key:
+              type: string
+            actual_bytes:
+              type: integer
+              format: int64
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
+    BatchFinalizeEnvelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            upload_batch_id:
+              type: string
+              format: uuid
+            status:
+              type: string
+              example: COMPLETED
+            total_files_uploaded:
+              type: integer
+            actual_bytes:
+              type: integer
+              format: int64
+            quota_reconciled:
+              type: boolean
+            event_published:
+              type: boolean
+              description: True bila seluruh event photo.uploaded berhasil dikirim ke RabbitMQ.
+        meta:
+          $ref: '#/components/schemas/SuccessMeta'
     CapabilityCode:
       type: string
       enum:

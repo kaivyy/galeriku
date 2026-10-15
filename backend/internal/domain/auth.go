@@ -30,16 +30,16 @@ type UserCredential struct {
 
 // RefreshToken represents a stateful session token in auth_refresh_tokens.
 type RefreshToken struct {
-	ID            uuid.UUID  `json:"id"`
-	UserID        uuid.UUID  `json:"user_id"`
-	TokenHash     string     `json:"token_hash"`
-	FamilyID      uuid.UUID  `json:"family_id"`
-	IsRevoked     bool       `json:"is_revoked"`
-	RevokedReason *string    `json:"revoked_reason,omitempty"`
-	ExpiresAt     time.Time  `json:"expires_at"`
-	CreatedAt     time.Time  `json:"created_at"`
-	UserAgent     *string    `json:"user_agent,omitempty"`
-	IPAddress     *string    `json:"ip_address,omitempty"`
+	ID            uuid.UUID `json:"id"`
+	UserID        uuid.UUID `json:"user_id"`
+	TokenHash     string    `json:"token_hash"`
+	FamilyID      uuid.UUID `json:"family_id"`
+	IsRevoked     bool      `json:"is_revoked"`
+	RevokedReason *string   `json:"revoked_reason,omitempty"`
+	ExpiresAt     time.Time `json:"expires_at"`
+	CreatedAt     time.Time `json:"created_at"`
+	UserAgent     *string   `json:"user_agent,omitempty"`
+	IPAddress     *string   `json:"ip_address,omitempty"`
 }
 
 // OTPChallenge represents a verification challenge in auth_otp_challenges.

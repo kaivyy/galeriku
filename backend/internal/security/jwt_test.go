@@ -277,4 +277,3 @@ func TestGenerateAccessToken_JTI_UUIDv7(t *testing.T) {
 		t.Errorf("expected UUIDv7 (version 7 at index 14), got: %s", claims.ID)
 	}
 }
-
