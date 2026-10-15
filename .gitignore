@@ -1,0 +1,26 @@
+# Environment & secrets
+.env
+*.local
+
+# Binaries & build artifacts
+/tmp/
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Storage & containers
+pgdata/
+redisdata/
+rabbitmqdata/
+qdrantdata/
+miniodata/
+
+# Subagent development progress ledger & scratch
+.superpowers/
+
+# Node
+node_modules/
+dist/
+.npm

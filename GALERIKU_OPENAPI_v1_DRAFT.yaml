@@ -1,0 +1,653 @@
+openapi: 3.1.0
+info:
+  title: Galeriku Core API
+  version: 0.1.0-draft
+  description: Kontrak OpenAPI 3.1 untuk Core API Galeriku (Modular Monolith Go).
+    Mengacu pada GALERIKU_API_ARCHITECTURE_SPEC.md, PRD.md v2.2, PRD_REVIEW.md, dan
+    DATABASE_SPEC.md.
+  contact:
+    name: Galeriku Architecture Team
+    email: architecture@galeriku.com
+servers:
+- url: https://api.galeriku.com/api/v1
+  description: Production API Gateway
+- url: https://staging-api.galeriku.com/api/v1
+  description: Staging API Gateway
+- url: http://localhost:8080/api/v1
+  description: Local Development Server
+paths:
+  /public/events:
+    get:
+      summary: Daftar event FotoTree publik
+      description: Mengembalikan daftar event yang telah dipublikasikan dengan pagination
+        berbasis kursor.
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 20
+          maximum: 100
+      - name: cursor
+        in: query
+        schema:
+          type: string
+          nullable: true
+      responses:
+        '200':
+          description: Daftar event berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+                  meta:
+                    $ref: '#/components/schemas/SuccessMeta'
+                required:
+                - data
+                - meta
+  /public/search/bib:
+    get:
+      summary: Pencarian kandidat foto berdasarkan nomor BIB
+      description: Hanya untuk discovery dan preview publik. Hasil pencarian ini TIDAK
+        memberikan hak checkout tanpa verifikasi (DEC-Q02).
+      parameters:
+      - name: event_id
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: bib
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 20
+      responses:
+        '200':
+          description: Kandidat foto ditemukan
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PhotoPreview'
+                  meta:
+                    $ref: '#/components/schemas/SuccessMeta'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+  /checkout-verifications/challenges:
+    post:
+      summary: Memicu tantangan verifikasi OTP / kode event untuk checkout BIB (DEC-Q02)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event_id:
+                  type: string
+                  format: uuid
+                bib_number:
+                  type: string
+                verification_type:
+                  type: string
+                  enum:
+                  - EVENT_REGISTRATION_OTP
+                  - EVENT_ACCESS_CODE
+              required:
+              - event_id
+              - bib_number
+              - verification_type
+      responses:
+        '200':
+          description: Tantangan verifikasi berhasil dibuat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      verification_id:
+                        type: string
+                        format: uuid
+                      destination_hint:
+                        type: string
+                      expires_in_seconds:
+                        type: integer
+                  meta:
+                    $ref: '#/components/schemas/SuccessMeta'
+  /checkout-verifications/verify:
+    post:
+      summary: Validasi kode OTP/akses dan penerbitan checkout verification grant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                verification_id:
+                  type: string
+                  format: uuid
+                code:
+                  type: string
+              required:
+              - verification_id
+              - code
+      responses:
+        '200':
+          description: Verifikasi sukses dan grant diterbitkan
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      grant_token:
+                        type: string
+                      scope:
+                        type: string
+                      expires_at:
+                        type: string
+                        format: date-time
+                  meta:
+                    $ref: '#/components/schemas/SuccessMeta'
+        '422':
+          $ref: '#/components/responses/BusinessValidationError'
+  /checkout/quote:
+    post:
+      summary: Kalkulasi otoritatif harga dan kelayakan checkout (Zero-Trust Backend)
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                photo_ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                verification_grant_tokens:
+                  type: array
+                  items:
+                    type: string
+              required:
+              - photo_ids
+      responses:
+        '200':
+          description: Kutipan harga otoritatif berhasil dihitung
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      quote_id:
+                        type: string
+                        format: uuid
+                      subtotal_idr:
+                        type: integer
+                      discount_idr:
+                        type: integer
+                      total_idr:
+                        type: integer
+                      currency:
+                        type: string
+                        example: IDR
+                      expires_at:
+                        type: string
+                        format: date-time
+                  meta:
+                    $ref: '#/components/schemas/SuccessMeta'
+  /orders:
+    post:
+      summary: Membuat pesanan pembelian dari kutipan tervalidasi
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quote_id:
+                  type: string
+                  format: uuid
+              required:
+              - quote_id
+      responses:
+        '201':
+          description: Pesanan berhasil dibuat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Order'
+                  meta:
+                    $ref: '#/components/schemas/SuccessMeta'
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
+  /orders/{orderId}/refund-requests:
+    post:
+      summary: Mengajukan komplain refund untuk SLA breach atau master rusak (REF-01
+        s/d REF-10)
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: orderId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_item_id:
+                  type: string
+                  format: uuid
+                reason_code:
+                  type: string
+                  enum:
+                  - HIRES_SLA_BREACH
+                  - MASTER_LOST
+                  - CORRUPT_FILE
+                  - GENERATIVE_UPSCALE_REJECTED
+                destination_type:
+                  type: string
+                  enum:
+                  - INTERNAL_WALLET
+                  - ORIGINAL_PAYMENT_METHOD
+                  default: INTERNAL_WALLET
+              required:
+              - order_item_id
+              - reason_code
+      responses:
+        '201':
+          description: Refund disetujui dan diproses ke ledger
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/RefundItemDetail'
+                  meta:
+                    $ref: '#/components/schemas/SuccessMeta'
+  /creator/upload-batches/preflight:
+    post:
+      summary: Preflight validasi jumlah berkas dan estimasi ukuran sebelum reservasi
+        kuota (DEC-Q03)
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event_id:
+                  type: string
+                  format: uuid
+                expected_file_count:
+                  type: integer
+                  maximum: 2000
+                expected_bytes:
+                  type: integer
+              required:
+              - event_id
+              - expected_file_count
+              - expected_bytes
+      responses:
+        '200':
+          description: Preflight disetujui
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      eligible:
+                        type: boolean
+                      remaining_quota_bytes:
+                        type: integer
+                  meta:
+                    $ref: '#/components/schemas/SuccessMeta'
+  /creator/upload-batches:
+    post:
+      summary: Inisiasi batch upload massal 1-2000 file dan reservasi kuota atomik
+        di database (DEC-Q03)
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event_id:
+                  type: string
+                  format: uuid
+                expected_file_count:
+                  type: integer
+                  maximum: 2000
+                expected_bytes:
+                  type: integer
+              required:
+              - event_id
+              - expected_file_count
+              - expected_bytes
+      responses:
+        '201':
+          description: Batch dibuat dan kuota berhasil direservasi secara atomik
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      batch_id:
+                        type: string
+                        format: uuid
+                      status:
+                        type: string
+                        example: RESERVED
+                      reserved_bytes:
+                        type: integer
+                      expires_at:
+                        type: string
+                        format: date-time
+                  meta:
+                    $ref: '#/components/schemas/SuccessMeta'
+        '422':
+          $ref: '#/components/responses/BusinessValidationError'
+  /me/privacy/biometric-consents:
+    post:
+      summary: Pencatatan persetujuan biometrik eksplisit (UU PDP No. 27/2022)
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                consent_purpose:
+                  type: string
+                  example: FACE_SEARCH_DISCOVERY
+                policy_version:
+                  type: string
+                  example: v1.0-202610
+              required:
+              - consent_purpose
+              - policy_version
+      responses:
+        '201':
+          description: Persetujuan biometrik tercatat permanen dalam audit log
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      consent_id:
+                        type: string
+                        format: uuid
+                      status:
+                        type: string
+                        example: ACTIVE
+                      granted_at:
+                        type: string
+                        format: date-time
+                  meta:
+                    $ref: '#/components/schemas/SuccessMeta'
+  /me/privacy/biometric-deletion-requests:
+    post:
+      summary: Penarikan persetujuan biometrik & pemicuan pembersihan data (Right
+        to be Forgotten)
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+              required:
+              - reason
+      responses:
+        '202':
+          description: Permintaan penghapusan diterima, pembersihan vektor di Qdrant
+            dimulai
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      deletion_job_id:
+                        type: string
+                        format: uuid
+                      status:
+                        type: string
+                        example: PROCESSING
+                  meta:
+                    $ref: '#/components/schemas/SuccessMeta'
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token JWT berumur pendek untuk autentikasi pengguna.
+  schemas:
+    SuccessMeta:
+      type: object
+      properties:
+        request_id:
+          type: string
+          example: req_01927c8b5a12
+        next_cursor:
+          type: string
+          nullable: true
+          example: eyJpZCI6MTIzfQ==
+      required:
+      - request_id
+    ErrorEnvelope:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: CHECKOUT_VERIFICATION_REQUIRED
+            message:
+              type: string
+              example: Verifikasi event diperlukan sebelum checkout.
+            details:
+              type: array
+              items:
+                type: object
+            request_id:
+              type: string
+              example: req_01927c8b5a12
+          required:
+          - code
+          - message
+          - request_id
+      required:
+      - error
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+          example: PUBLISHED
+        starts_at:
+          type: string
+          format: date-time
+    PhotoPreview:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        preview_watermark_url:
+          type: string
+          format: uri
+        thumbnail_url:
+          type: string
+          format: uri
+        photographer_name:
+          type: string
+        price_idr:
+          type: integer
+          example: 45000
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        order_number:
+          type: string
+        status:
+          type: string
+          example: PENDING_PAYMENT
+        total_idr:
+          type: integer
+          example: 90000
+        currency_code:
+          type: string
+          example: IDR
+    RefundItemDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        order_item_id:
+          type: string
+          format: uuid
+        reason_code:
+          type: string
+          example: HIRES_SLA_BREACH
+        eligible_amount_idr:
+          type: integer
+          example: 45000
+        buyer_credit_amount_idr:
+          type: integer
+          example: 45000
+        creator_clawback_idr:
+          type: integer
+          example: 31500
+        host_clawback_idr:
+          type: integer
+          example: 6750
+        platform_clawback_idr:
+          type: integer
+          example: 6750
+        gateway_fee_idr:
+          type: integer
+          example: 0
+        destination_type:
+          type: string
+          example: INTERNAL_WALLET
+        status:
+          type: string
+          example: COMPLETED
+        completed_at:
+          type: string
+          format: date-time
+  responses:
+    RateLimitExceeded:
+      description: Batas frekuensi request terlampaui
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    BusinessValidationError:
+      description: Validasi aturan bisnis gagal
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    IdempotencyConflict:
+      description: Konflik idempotensi
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
