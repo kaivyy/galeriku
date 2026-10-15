@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // SuccessEnvelope format standar respons sukses sesuai GALERIKU_API_ARCHITECTURE_SPEC.md Bab 4.1
@@ -31,16 +33,26 @@ type ErrorBody struct {
 	RequestID string      `json:"request_id"`
 }
 
-func SetupRoutes() *http.ServeMux {
+func SetupRoutes(pool *pgxpool.Pool) *http.ServeMux {
 	mux := http.NewServeMux()
 
-	// Health check endpoint
 	mux.HandleFunc("GET /api/v1/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		
+
 		reqID := r.Header.Get("X-Request-ID")
 		if reqID == "" {
 			reqID = "req_" + uuid.New().String()[:12]
+		}
+
+		dbStatus := "UNKNOWN"
+		if pool != nil {
+			ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
+			defer cancel()
+			if err := pool.Ping(ctx); err == nil {
+				dbStatus = "UP"
+			} else {
+				dbStatus = "DOWN"
+			}
 		}
 
 		resp := SuccessEnvelope{
@@ -48,6 +60,7 @@ func SetupRoutes() *http.ServeMux {
 				"status":    "UP",
 				"service":   "galeriku-core-api",
 				"version":   "0.1.0-draft",
+				"database":  dbStatus,
 				"timestamp": time.Now().UTC().Format(time.RFC3339),
 			},
 			Meta: SuccessMeta{
