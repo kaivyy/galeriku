@@ -261,7 +261,25 @@ func registerFinalizeRoutes(mux *http.ServeMux, authMw func(http.Handler) http.H
 	mux.Handle("POST /api/v1/storage/upload-batches/{id}/finalize", authMw(anyMember(http.HandlerFunc(finalizeHandler.Finalize))))
 }
 
-// SetupRoutesWithMultipart wires the Phase 3 multipart upload endpoints.
+// registerDiscoveryRoutes mounts the Phase 5 discovery, cart, checkout, and order endpoints.
+func registerDiscoveryRoutes(mux *http.ServeMux, authMw func(http.Handler) http.Handler, discoveryHandler *DiscoveryHandler) {
+	if discoveryHandler == nil {
+		return
+	}
+	// BIB search is public.
+	mux.Handle("POST /api/v1/search/bib", http.HandlerFunc(discoveryHandler.SearchBIB))
+
+	buyerAuth := authMw
+	mux.Handle("GET /api/v1/cart", buyerAuth(http.HandlerFunc(discoveryHandler.GetCart)))
+	mux.Handle("POST /api/v1/cart/items", buyerAuth(http.HandlerFunc(discoveryHandler.AddCartItem)))
+	mux.Handle("DELETE /api/v1/cart/items/{id}", buyerAuth(http.HandlerFunc(discoveryHandler.RemoveCartItem)))
+	mux.Handle("POST /api/v1/checkout/verify-bib/initiate", buyerAuth(http.HandlerFunc(discoveryHandler.InitiateVerification)))
+	mux.Handle("POST /api/v1/checkout/verify-bib/confirm", buyerAuth(http.HandlerFunc(discoveryHandler.ConfirmVerification)))
+	mux.Handle("POST /api/v1/orders", buyerAuth(http.HandlerFunc(discoveryHandler.CreateOrder)))
+	mux.Handle("GET /api/v1/orders/{id}", buyerAuth(http.HandlerFunc(discoveryHandler.GetOrder)))
+}
+
+// SetupRoutesWithMultipart wires the Phase 3 multipart upload endpoints on top of the quota surface.
 func SetupRoutesWithMultipart(pool *pgxpool.Pool, authHandler *AuthHandler, hostHandler *HostApplicationHandler, membershipHandler *HostMembershipHandler, tenantRepo repository.TenantRepository, bankHandler *BankAccountHandler, invitationHandler *InvitationHandler, eventTreeHandler *EventTreeHandler, uploadHandler *UploadBatchHandler, multipartHandler *MultipartUploadHandler, jwtSecret []byte) http.Handler {
 	mux := http.NewServeMux()
 	registerCoreRoutes(mux, pool, authHandler)
@@ -272,8 +290,7 @@ func SetupRoutesWithMultipart(pool *pgxpool.Pool, authHandler *AuthHandler, host
 	return middleware.CorrelationIDMiddleware(mux)
 }
 
-// SetupRoutesWithFinalize wires the complete Phase 3 surface: FotoTree, quota reservation,
-// multipart upload, and batch finalization.
+// SetupRoutesWithFinalize wires the complete Phase 3 surface.
 func SetupRoutesWithFinalize(pool *pgxpool.Pool, authHandler *AuthHandler, hostHandler *HostApplicationHandler, membershipHandler *HostMembershipHandler, tenantRepo repository.TenantRepository, bankHandler *BankAccountHandler, invitationHandler *InvitationHandler, eventTreeHandler *EventTreeHandler, uploadHandler *UploadBatchHandler, multipartHandler *MultipartUploadHandler, finalizeHandler *BatchFinalizeHandler, jwtSecret []byte) http.Handler {
 	mux := http.NewServeMux()
 	registerCoreRoutes(mux, pool, authHandler)
@@ -282,5 +299,18 @@ func SetupRoutesWithFinalize(pool *pgxpool.Pool, authHandler *AuthHandler, hostH
 	registerStorageRoutes(mux, middleware.Authenticate(jwtSecret), uploadHandler, tenantRepo)
 	registerMultipartRoutes(mux, middleware.Authenticate(jwtSecret), multipartHandler, tenantRepo)
 	registerFinalizeRoutes(mux, middleware.Authenticate(jwtSecret), finalizeHandler, tenantRepo)
+	return middleware.CorrelationIDMiddleware(mux)
+}
+
+// SetupRoutesWithDiscovery wires the complete Phase 5 surface on top of Phase 3.
+func SetupRoutesWithDiscovery(pool *pgxpool.Pool, authHandler *AuthHandler, hostHandler *HostApplicationHandler, membershipHandler *HostMembershipHandler, tenantRepo repository.TenantRepository, bankHandler *BankAccountHandler, invitationHandler *InvitationHandler, eventTreeHandler *EventTreeHandler, uploadHandler *UploadBatchHandler, multipartHandler *MultipartUploadHandler, finalizeHandler *BatchFinalizeHandler, discoveryHandler *DiscoveryHandler, jwtSecret []byte) http.Handler {
+	mux := http.NewServeMux()
+	registerCoreRoutes(mux, pool, authHandler)
+	registerHostRoutes(mux, middleware.Authenticate(jwtSecret), hostHandler, membershipHandler, bankHandler, invitationHandler, tenantRepo)
+	registerFotoTreeRoutes(mux, middleware.Authenticate(jwtSecret), eventTreeHandler, tenantRepo)
+	registerStorageRoutes(mux, middleware.Authenticate(jwtSecret), uploadHandler, tenantRepo)
+	registerMultipartRoutes(mux, middleware.Authenticate(jwtSecret), multipartHandler, tenantRepo)
+	registerFinalizeRoutes(mux, middleware.Authenticate(jwtSecret), finalizeHandler, tenantRepo)
+	registerDiscoveryRoutes(mux, middleware.Authenticate(jwtSecret), discoveryHandler)
 	return middleware.CorrelationIDMiddleware(mux)
 }

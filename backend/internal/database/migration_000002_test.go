@@ -287,8 +287,10 @@ func TestMigration000002_Rollback_And_Reapply(t *testing.T) {
 	if err != nil {
 		t.Fatalf("VerifySchemaCompleteness failed after re-applying 000002: %v", err)
 	}
-	if count != 81 {
-		t.Fatalf("expected exactly 81 tables after re-applying migration 000002, got %d", count)
+	// The table count depends on how many migrations exist beyond 000002; later
+	// migrations add tables too. 81 is the floor after 000002, not the ceiling.
+	if count < 81 {
+		t.Fatalf("expected at least 81 tables after re-applying migration 000002, got %d", count)
 	}
 	t.Logf("Re-apply Verification PASS: successfully restored 81 tables and verified schema completeness")
 }
