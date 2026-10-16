@@ -31,8 +31,14 @@ class GalerikuApp extends StatelessWidget {
       create: (_) => authOverride ?? AppState(api: api),
       child: MaterialApp(
         title: 'Galeriku',
-        theme: ThemeData(colorSchemeSeed: const Color(0xFF1B5E20), useMaterial3: true),
-        darkTheme: ThemeData(colorSchemeSeed: const Color(0xFF1B5E20), brightness: Brightness.dark, useMaterial3: true),
+        theme: ThemeData(colorSchemeSeed: const Color(0xFF4F46E5), useMaterial3: true),
+        darkTheme: ThemeData(
+          colorSchemeSeed: const Color(0xFF4F46E5),
+          brightness: Brightness.dark,
+          scaffoldBackgroundColor: const Color(0xFF0F172A),
+          useMaterial3: true,
+        ),
+        themeMode: ThemeMode.dark,
         home: const AppGate(),
       ),
     );

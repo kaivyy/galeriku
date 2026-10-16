@@ -3,7 +3,8 @@ import Base from '../layouts/Base.astro';
 ---
 
 <Base title="Beranda" active="home">
-  <section style="text-align:center;padding: var(--space-7) 0;">
+  <!-- Hero: hidden on mobile to maximize feed screen space -->
+  <section class="hero-desktop" style="text-align:center;padding: var(--space-7) 0;">
     <h1 class="page-title" style="font-size:clamp(2rem, 6vw, 3.5rem)">Temukan Foto Maratonmu</h1>
     <p class="page-subtitle" style="font-size:1rem;max-width:480px;margin:0 auto var(--space-5)">
       Cari berdasarkan nomor dada, wajah, atau jelajahi FotoTree event. Beli, unduh, koleksi.
@@ -14,8 +15,13 @@ import Base from '../layouts/Base.astro';
     </div>
   </section>
 
-  <h2 style="font-family:var(--font-display);font-size:1.25rem;margin-bottom:var(--space-4)">Foto Terbaru</h2>
-  <div class="photo-grid" id="home-feed"></div>
+  <h2 class="feed-title" style="font-family:var(--font-display);font-size:1.25rem;margin-bottom:var(--space-4)">Foto Terbaru</h2>
+
+  <!-- Mobile: TikTok-style vertical snap feed -->
+  <div class="feed-vertical" id="feed-mobile" aria-label="Feed foto vertikal"></div>
+
+  <!-- Desktop: masonry grid -->
+  <div class="photo-grid" id="feed-desktop" aria-label="Katalog foto"></div>
 </Base>
 
 <script>
@@ -72,17 +78,21 @@ import Base from '../layouts/Base.astro';
   }
 
   async function loadCatalog(): Promise<void> {
-    const grid = document.getElementById('home-feed');
-    if (!grid) return;
+    const desktopGrid = document.getElementById('feed-desktop');
+    const mobileFeed = document.getElementById('feed-mobile');
+    if (!desktopGrid || !mobileFeed) return;
     try {
       const res = await fetch(`${apiBase}/api/v1/photos?limit=12`);
       const payload = (await res.json()) as { success: boolean; data?: { photos: CatalogPhoto[] } };
       const photos = payload.data?.photos ?? [];
       if (photos.length === 0) {
-        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><p>Belum ada foto di katalog</p></div>';
+        desktopGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><p>Belum ada foto di katalog</p></div>';
+        mobileFeed.innerHTML = '<div class="empty-state"><p>Belum ada foto di katalog</p></div>';
         return;
       }
-      grid.innerHTML = '';
+
+      // Desktop masonry: compact cards, click to add to cart.
+      desktopGrid.innerHTML = '';
       for (const photo of photos) {
         const item = document.createElement('button');
         item.className = 'photo-item';
@@ -95,13 +105,47 @@ import Base from '../layouts/Base.astro';
         tag.textContent = `Rp ${photo.price_idr}`;
         item.append(img, tag);
         item.addEventListener('click', () => void addToCart(photo.photo_id));
-        grid.appendChild(item);
+        desktopGrid.appendChild(item);
+        void loadPreview(photo.photo_id, img);
+      }
+
+      // Mobile TikTok-style: full-bleed vertical cards with snap scroll,
+      // an add-to-cart action rail, and a price overlay.
+      mobileFeed.innerHTML = '';
+      for (const photo of photos) {
+        const card = document.createElement('div');
+        card.className = 'feed-card';
+        const img = document.createElement('img');
+        img.alt = 'Pratinjau foto';
+        img.loading = 'lazy';
+        const overlay = document.createElement('div');
+        overlay.className = 'overlay';
+        overlay.innerHTML = `<div class="price">Rp ${photo.price_idr}</div>`;
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+        const buyBtn = document.createElement('button');
+        buyBtn.setAttribute('aria-label', 'Tambahkan ke keranjang');
+        buyBtn.innerHTML =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1H4L5.44 12.59L18 17L23 7"/></svg><span>Beli</span>';
+        buyBtn.addEventListener('click', () => void addToCart(photo.photo_id));
+        actions.appendChild(buyBtn);
+        card.append(img, overlay, actions);
+        mobileFeed.appendChild(card);
         void loadPreview(photo.photo_id, img);
       }
     } catch {
-      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><p>Tidak dapat terhubung ke server</p></div>';
+      desktopGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><p>Tidak dapat terhubung ke server</p></div>';
+      mobileFeed.innerHTML = '<div class="empty-state"><p>Tidak dapat terhubung ke server</p></div>';
     }
   }
 
   void loadCatalog();
 </script>
+
+<style>
+  /* Hero hanya desktop; mobile langsung feed */
+  @media (max-width: 1023px) {
+    .hero-desktop { display: none; }
+    .feed-title { padding-top: var(--space-2); }
+  }
+</style>
