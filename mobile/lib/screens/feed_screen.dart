@@ -4,7 +4,7 @@ import '../src/api.dart';
 import '../src/models.dart';
 import '../src/state.dart';
 
-/// GaleriGram feed screen (UI_UX_SPEC M-04) and BIB search (M-08).
+/// GaleriGram feed screen (UI_UX_SPEC M-04) with live catalog (M-08 BIB search).
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
 
@@ -15,12 +15,38 @@ class FeedScreen extends StatefulWidget {
 class _FeedScreenState extends State<FeedScreen> {
   final _searchController = TextEditingController();
   bool _searching = false;
+  bool _loadingCatalog = true;
+  List<PhotoSearchHit> _catalog = [];
   BibSearchResult? _result;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCatalog();
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadCatalog() async {
+    final api = context.read<AppState>().api;
+    try {
+      final data = await api.listPublicPhotos(limit: 12);
+      final photos = data['photos'] as List<dynamic>? ?? [];
+      if (mounted) {
+        setState(() {
+          _catalog = photos
+              .map((e) => PhotoSearchHit.fromJson(e as Map<String, dynamic>))
+              .toList();
+          _loadingCatalog = false;
+        });
+      }
+    } on ApiError {
+      if (mounted) setState(() => _loadingCatalog = false);
+    }
   }
 
   Future<void> _search() async {
@@ -57,30 +83,56 @@ class _FeedScreenState extends State<FeedScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _result != null
               ? _buildResults()
-              : _buildFeedPlaceholder(),
+              : _buildCatalogGrid(),
+    );
+  }
+
+  Widget _buildCatalogGrid() {
+    if (_loadingCatalog) {
+      return GridView.builder(
+        padding: const EdgeInsets.all(8),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2, mainAxisSpacing: 8, crossAxisSpacing: 8, childAspectRatio: 0.75,
+        ),
+        itemCount: 8,
+        itemBuilder: (context, i) => Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+    }
+    if (_catalog.isEmpty) return _buildFeedPlaceholder();
+    return RefreshIndicator(
+      onRefresh: _loadCatalog,
+      child: GridView.builder(
+        padding: const EdgeInsets.all(8),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2, mainAxisSpacing: 8, crossAxisSpacing: 8, childAspectRatio: 0.75,
+        ),
+        itemCount: _catalog.length,
+        itemBuilder: (context, i) {
+          final photo = _catalog[i];
+          return _PhotoCard(
+            photo: photo,
+            onAdd: () => context.read<AppState>().addToCart(photo.photoId),
+          );
+        },
+      ),
     );
   }
 
   Widget _buildFeedPlaceholder() {
-    // Skeleton grid for the GaleriGram feed; real feed needs the public
-    // photo catalog endpoint (documented backend gap).
-    return GridView.builder(
-      padding: const EdgeInsets.all(8),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
-        childAspectRatio: 0.75,
-      ),
-      itemCount: 8,
-      itemBuilder: (context, i) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Center(
-          child: Icon(Icons.image_outlined, size: 32),
-        ),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.image_not_supported_outlined, size: 48),
+          const SizedBox(height: 12),
+          const Text('Belum ada foto di katalog'),
+          TextButton(onPressed: _loadCatalog, child: const Text('Muat ulang')),
+        ],
       ),
     );
   }

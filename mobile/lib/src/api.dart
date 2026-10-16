@@ -56,7 +56,15 @@ class GalerikuApi {
             body: body != null ? jsonEncode(body) : null);
     }
 
-    final payload = jsonDecode(response.body) as Map<String, dynamic>;
+    Map<String, dynamic> payload;
+    try {
+      payload = jsonDecode(response.body) as Map<String, dynamic>;
+    } on FormatException {
+      // Non-JSON response (empty body, HTML error page, gateway timeout):
+      // normalize to a transport error rather than crashing the caller.
+      throw ApiError(response.statusCode, 'TRANSPORT_ERROR',
+          'Server returned an invalid response', requestId: null);
+    }
     if (payload['success'] == true) {
       return payload['data'] as T;
     }
@@ -74,6 +82,17 @@ class GalerikuApi {
       _request('POST', '/api/v1/auth/register', body: {'email': email, 'password': password, 'display_name': displayName});
 
   Future<Map<String, dynamic>> me() => _request('GET', '/api/v1/auth/me');
+
+  // Public catalog (no auth)
+
+  Future<Map<String, dynamic>> listPublicPhotos({int limit = 12, String? eventId}) =>
+      _request('GET', '/api/v1/photos?limit=$limit${eventId != null ? '&event_id=$eventId' : ''}');
+
+  Future<Map<String, dynamic>> getPhoto(String photoId) => _request('GET', '/api/v1/photos/$photoId');
+
+  // Wallet (Phase 7)
+
+  Future<Map<String, dynamic>> getWallet() => _request('GET', '/api/v1/finance/wallet');
 
   // Discovery (public BIB search)
 

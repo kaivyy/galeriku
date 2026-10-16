@@ -12,6 +12,7 @@ import 'src/state.dart';
 import 'screens/login_screen.dart';
 import 'screens/feed_screen.dart';
 import 'screens/qris_screen.dart';
+import 'screens/profile_screen.dart';
 
 void main() {
   final api = GalerikuApi(baseUrl: const String.fromEnvironment('API_BASE_URL', defaultValue: 'http://localhost:8080'));
@@ -65,7 +66,7 @@ class _HomeShellState extends State<HomeShell> {
     FeedScreen(),
     CartTab(),
     CheckoutTab(),
-    CollectionTab(),
+    ProfileScreen(),
   ];
 
   @override
@@ -174,28 +175,6 @@ class CheckoutTab extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class CollectionTab extends StatelessWidget {
-  const CollectionTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Koleksi'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Keluar',
-            onPressed: () => state.logout(),
-          ),
-        ],
-      ),
-      body: const Center(child: Text('Koleksi foto yang dibeli')),
     );
   }
 }
