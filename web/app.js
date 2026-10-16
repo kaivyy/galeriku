@@ -111,6 +111,18 @@ function renderPhotoGrid(container, photos) {
     </div>`).join('') + '</div>';
 }
 
+// ===== Public Catalog (replaces placeholder feed) =====
+async function loadPublicPhotos(targetGrid, limit) {
+  targetGrid.innerHTML = '<div class="skeleton" style="height:200px;grid-column:1/-1"></div>';
+  try {
+    const res = await fetch(API_BASE + '/api/v1/photos?limit=' + (limit || 12));
+    const payload = await res.json();
+    if (payload.success) renderPhotoGrid(targetGrid, payload.data.photos || []);
+    else targetGrid.innerHTML = '<div class="empty-state"><div class="icon">!</div><p>' + (payload.error?.message || 'Gagal memuat katalog') + '</p></div>';
+  } catch (e) {
+    targetGrid.innerHTML = '<div class="empty-state"><div class="icon">!</div><p>Tidak dapat terhubung ke server</p></div>';
+  }
+}
 // ===== Cart =====
 async function loadCart() {
   if (!requireAuth('cart')) return;

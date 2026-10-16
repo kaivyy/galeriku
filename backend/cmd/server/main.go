@@ -50,6 +50,10 @@ func main() {
 	var finalizeHandler *handler.BatchFinalizeHandler
 	var publisher messaging.Publisher = messaging.NoopPublisher{}
 	var tenantRepo repository.TenantRepository
+	var discoveryHandler *handler.DiscoveryHandler
+	var paymentHandler *handler.PaymentHandler
+	var catalogHandler *handler.CatalogHandler
+	var financeHandler *handler.FinanceHandler
 
 	if err != nil {
 		log.Printf("[GALERIKU-CORE] Warning: database pool init failed: %v", err)
@@ -125,9 +129,21 @@ func main() {
 		} else {
 			publisher = rabbitPub
 		}
+		discoveryRepo := repository.NewPostgresDiscoveryRepository(pool)
+		discoveryOtpIssuer, _ := security.NewOTPIssuer([]byte(cfg.OTPSecret))
+		discoveryHandler = handler.NewDiscoveryHandler(usecase.NewDiscoveryUsecase(discoveryRepo, discoveryOtpIssuer))
+
+		paymentRepo := repository.NewPostgresPaymentRepository(pool)
+		paymentHandler = handler.NewPaymentHandler(usecase.NewPaymentUsecase(paymentRepo, usecase.StubPaymentGateway{}, cfg.OTPSecret, cfg.S3Endpoint, nil), nil)
+
+		catalogRepo := repository.NewPostgresPhotoCatalogRepository(pool)
+		catalogHandler = handler.NewCatalogHandler(catalogRepo)
+
+		ledgerRepo := repository.NewPostgresLedgerRepository(pool)
+		financeHandler = handler.NewFinanceHandler(usecase.NewFinanceUsecase(ledgerRepo, paymentRepo, auditSvc))
 	}
 
-	router := handler.SetupRoutesWithFinalize(pool, authHandler, hostHandler, membershipHandler, tenantRepo, bankHandler, invitationHandler, eventTreeHandler, uploadHandler, multipartHandler, finalizeHandler, []byte(cfg.JWTSecret))
+	router := handler.SetupRoutesWithFinance(pool, authHandler, hostHandler, membershipHandler, tenantRepo, bankHandler, invitationHandler, eventTreeHandler, uploadHandler, multipartHandler, finalizeHandler, discoveryHandler, paymentHandler, catalogHandler, financeHandler, []byte(cfg.JWTSecret))
 
 	addr := fmt.Sprintf(":%s", cfg.AppPort)
 	srv := &http.Server{Addr: addr, Handler: router}

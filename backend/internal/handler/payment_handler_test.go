@@ -92,6 +92,7 @@ func newPaymentTestEnv(t *testing.T) *paymentTestEnv {
 		pool, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
 		handler.NewDiscoveryHandler(discoveryUsecase),
 		handler.NewPaymentHandler(paymentUsecase, s3),
+		nil, // catalogHandler
 		[]byte(jwtSecret),
 	)
 

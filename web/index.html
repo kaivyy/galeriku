@@ -143,10 +143,9 @@
 <script>
 // Page-specific wiring on load: render home feed placeholders and load page data
 window.addEventListener('DOMContentLoaded', () => {
-  // Home feed placeholders
-  const homeFeed = document.getElementById('home-feed');
-  const placeholders = Array.from({length: 8}, (_, i) => ({photo_id: 'preview-' + i, price_idr: 45000}));
-  renderPhotoGrid(homeFeed, placeholders);
+  // Home feed: real public catalog via GET /photos
+  // loadPublicPhotoGrid replaces the placeholder list with live data
+  loadPublicPhotos(document.getElementById('home-feed'), 12);
 
   // Auth form
   const form = document.getElementById('auth-form');

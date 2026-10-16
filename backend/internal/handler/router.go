@@ -314,10 +314,46 @@ func registerPaymentRoutes(mux *http.ServeMux, authMw func(http.Handler) http.Ha
 	mux.Handle("POST /api/v1/fulfillment/upload-master/{id}", authMw(http.HandlerFunc(paymentHandler.UploadMaster)))
 }
 
-// SetupRoutesWithPayment wires the full Phase 6 surface on top of Phase 5.
-func SetupRoutesWithPayment(pool *pgxpool.Pool, authHandler *AuthHandler, hostHandler *HostApplicationHandler, membershipHandler *HostMembershipHandler, tenantRepo repository.TenantRepository, bankHandler *BankAccountHandler, invitationHandler *InvitationHandler, eventTreeHandler *EventTreeHandler, uploadHandler *UploadBatchHandler, multipartHandler *MultipartUploadHandler, finalizeHandler *BatchFinalizeHandler, discoveryHandler *DiscoveryHandler, paymentHandler *PaymentHandler, jwtSecret []byte) http.Handler {
+// registerCatalogRoutes mounts the public photo catalog endpoints (no auth).
+func registerCatalogRoutes(mux *http.ServeMux, catalogHandler *CatalogHandler) {
+	if catalogHandler == nil {
+		return
+	}
+	mux.Handle("GET /api/v1/photos", http.HandlerFunc(catalogHandler.ListPhotos))
+	mux.Handle("GET /api/v1/photos/{id}", http.HandlerFunc(catalogHandler.GetPhoto))
+}
+
+// registerFinanceRoutes mounts the Phase 7 wallet, refund, and settlement endpoints.
+func registerFinanceRoutes(mux *http.ServeMux, authMw func(http.Handler) http.Handler, financeHandler *FinanceHandler) {
+	if financeHandler == nil {
+		return
+	}
+	mux.Handle("GET /api/v1/finance/wallet", authMw(http.HandlerFunc(financeHandler.GetWallet)))
+	mux.Handle("POST /api/v1/refunds/request", authMw(http.HandlerFunc(financeHandler.RequestRefund)))
+	mux.Handle("POST /api/v1/finance/settlements/release", authMw(http.HandlerFunc(financeHandler.ReleaseSettlements)))
+}
+
+// SetupRoutesWithFinance wires the full Phase 7 surface on top of Phase 6.
+func SetupRoutesWithFinance(pool *pgxpool.Pool, authHandler *AuthHandler, hostHandler *HostApplicationHandler, membershipHandler *HostMembershipHandler, tenantRepo repository.TenantRepository, bankHandler *BankAccountHandler, invitationHandler *InvitationHandler, eventTreeHandler *EventTreeHandler, uploadHandler *UploadBatchHandler, multipartHandler *MultipartUploadHandler, finalizeHandler *BatchFinalizeHandler, discoveryHandler *DiscoveryHandler, paymentHandler *PaymentHandler, catalogHandler *CatalogHandler, financeHandler *FinanceHandler, jwtSecret []byte) http.Handler {
 	mux := http.NewServeMux()
 	registerCoreRoutes(mux, pool, authHandler)
+	registerCatalogRoutes(mux, catalogHandler)
+	registerHostRoutes(mux, middleware.Authenticate(jwtSecret), hostHandler, membershipHandler, bankHandler, invitationHandler, tenantRepo)
+	registerFotoTreeRoutes(mux, middleware.Authenticate(jwtSecret), eventTreeHandler, tenantRepo)
+	registerStorageRoutes(mux, middleware.Authenticate(jwtSecret), uploadHandler, tenantRepo)
+	registerMultipartRoutes(mux, middleware.Authenticate(jwtSecret), multipartHandler, tenantRepo)
+	registerFinalizeRoutes(mux, middleware.Authenticate(jwtSecret), finalizeHandler, tenantRepo)
+	registerDiscoveryRoutes(mux, middleware.Authenticate(jwtSecret), discoveryHandler)
+	registerPaymentRoutes(mux, middleware.Authenticate(jwtSecret), paymentHandler)
+	registerFinanceRoutes(mux, middleware.Authenticate(jwtSecret), financeHandler)
+	return middleware.CorrelationIDMiddleware(mux)
+}
+
+// SetupRoutesWithPayment wires the full Phase 6 surface on top of Phase 5.
+func SetupRoutesWithPayment(pool *pgxpool.Pool, authHandler *AuthHandler, hostHandler *HostApplicationHandler, membershipHandler *HostMembershipHandler, tenantRepo repository.TenantRepository, bankHandler *BankAccountHandler, invitationHandler *InvitationHandler, eventTreeHandler *EventTreeHandler, uploadHandler *UploadBatchHandler, multipartHandler *MultipartUploadHandler, finalizeHandler *BatchFinalizeHandler, discoveryHandler *DiscoveryHandler, paymentHandler *PaymentHandler, catalogHandler *CatalogHandler, jwtSecret []byte) http.Handler {
+	mux := http.NewServeMux()
+	registerCoreRoutes(mux, pool, authHandler)
+	registerCatalogRoutes(mux, catalogHandler)
 	registerHostRoutes(mux, middleware.Authenticate(jwtSecret), hostHandler, membershipHandler, bankHandler, invitationHandler, tenantRepo)
 	registerFotoTreeRoutes(mux, middleware.Authenticate(jwtSecret), eventTreeHandler, tenantRepo)
 	registerStorageRoutes(mux, middleware.Authenticate(jwtSecret), uploadHandler, tenantRepo)
