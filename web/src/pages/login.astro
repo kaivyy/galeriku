@@ -50,6 +50,16 @@ import Base from '../layouts/Base.astro';
 
   let mode: 'login' | 'register' = 'login';
 
+  // Already signed in: the login page has nothing to offer, so go home.
+  // astro:page-load covers both the first hit and view-transition returns.
+  function redirectIfAuthed(): void {
+    if (localStorage.getItem('galeriku_token')) {
+      window.location.href = '/';
+    }
+  }
+  redirectIfAuthed();
+  document.addEventListener('astro:page-load', redirectIfAuthed);
+
   function setMode(next: 'login' | 'register'): void {
     mode = next;
     tabLogin.className = next === 'login' ? 'btn btn-primary' : 'btn btn-ghost';

@@ -259,12 +259,17 @@ func TestFotoTree_CrossTenantAndOutsiderDenied(t *testing.T) {
 	}
 	eventID := successData(parsed)["id"].(string)
 
-	// A non-member cannot read or modify the event tree.
+	// A non-member cannot read or modify the event tree. The draft event is
+	// invisible to them (404, no existence leak through the guest catalog);
+	// mutations are outright forbidden (403).
+	rec, _ = env.do(t, http.MethodGet, "/api/v1/events/"+eventID, env.outsider, nil)
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("GET draft event as non-member: expected 404, got %d", rec.Code)
+	}
 	for _, tc := range []struct {
 		method, path string
 		body         interface{}
 	}{
-		{http.MethodGet, "/api/v1/events/" + eventID, nil},
 		{http.MethodPut, "/api/v1/events/" + eventID, map[string]string{"status": "PUBLISHED"}},
 		{http.MethodPost, "/api/v1/events/" + eventID + "/sessions", map[string]string{"name": "X", "session_type": "START"}},
 	} {
@@ -292,9 +297,12 @@ func TestFotoTree_CrossTenantAndOutsiderDenied(t *testing.T) {
 		t.Fatalf("failed to seed foreign event: %v", err)
 	}
 
+	// A foreign DRAFT event is equally invisible: the reader has no tenant
+	// relationship with it, so the guest policy answers 404 (no leak) rather
+	// than a 403 that would confirm existence.
 	rec, _ = env.do(t, http.MethodGet, "/api/v1/events/"+foreignEventID.String(), env.leader, nil)
-	if rec.Code != http.StatusForbidden {
-		t.Fatalf("expected 403 for foreign-tenant event, got %d", rec.Code)
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("expected 404 for foreign-tenant draft event, got %d", rec.Code)
 	}
 }
 

@@ -95,6 +95,7 @@ import Base from '../layouts/Base.astro';
       // Desktop masonry: compact cards, click to add to cart.
       desktopGrid.innerHTML = '';
       for (const photo of photos) {
+        if (photo.price_idr === 0) continue; // The desktop grid sells; posts live in the mobile reels.
         const item = document.createElement('button');
         item.className = 'photo-item';
         item.setAttribute('aria-label', `Beli foto, harga Rp ${photo.price_idr}`);
@@ -128,14 +129,15 @@ import Base from '../layouts/Base.astro';
         // Bottom gradient overlay: creator identity + price + caption.
         const overlay = document.createElement('div');
         overlay.className = 'overlay';
+        const isFree = photo.price_idr === 0;
         overlay.innerHTML = `
           <div class="creator-row">
             <span class="creator-avatar" aria-hidden="true">${photo.photo_id.slice(0, 2).toUpperCase()}</span>
-            <span class="creator-name">@fotografer_${photo.photo_id.slice(0, 4)}</span>
+            <span class="creator-name">@budi_${photo.photo_id.slice(0, 4)}</span>
             <button class="follow-btn" type="button">Ikuti</button>
           </div>
-          <div class="caption">Dokumentasi event, siap diunduh setelah master Hi-Res terkirim.</div>
-          <div class="price">Rp ${photo.price_idr}</div>`;
+          <div class="caption">${isFree ? 'Postingan dokumentasi from the track.' : 'Dokumentasi event, siap diunduh setelah master Hi-Res terkirim.'}</div>
+          <div class="price">${isFree ? '<span class="free-badge">Postingan</span>' : `Rp ${photo.price_idr}`}</div>`;
 
         // Right action rail.
         const actions = document.createElement('div');
@@ -257,7 +259,12 @@ import Base from '../layouts/Base.astro';
   @media (max-width: 1023px) {
     .hero-desktop { display: none; }
     .feed-title { display: none; }
-    :global(.feed-card .actions) { bottom: 128px; }
-    :global(.feed-card .overlay) { padding-bottom: 128px; }
+    :global(.feed-card .actions) { bottom: 104px; }
+    /* Content hugs the bottom; the gradient extends further down behind the
+       action rail and nav so there is no dead band between text and bar. */
+    :global(.feed-card .overlay .creator-row),
+    :global(.feed-card .overlay .caption),
+    :global(.feed-card .overlay .price) { margin-bottom: var(--space-2); }
+    :global(.feed-card .overlay) { padding-bottom: var(--space-4); }
   }
 </style>

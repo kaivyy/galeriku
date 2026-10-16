@@ -28,6 +28,7 @@ type EventRepository interface {
 	GetEvent(ctx context.Context, eventID uuid.UUID) (*domain.Event, error)
 	GetEventBySlug(ctx context.Context, orgID uuid.UUID, slug string) (*domain.Event, error)
 	ListEventsByOrganization(ctx context.Context, orgID uuid.UUID) ([]domain.Event, error)
+	ListPublishedEvents(ctx context.Context) ([]domain.Event, error)
 	UpdateEventSchedule(ctx context.Context, eventID uuid.UUID, name, status string, startsAt, endsAt *interface{}) error
 	EventSlugExists(ctx context.Context, orgID uuid.UUID, slug string) (bool, error)
 
@@ -95,6 +96,30 @@ func (r *PostgresEventRepository) GetEventBySlug(ctx context.Context, orgID uuid
 		return nil, fmt.Errorf("failed to query event by slug: %w", err)
 	}
 	return &e, nil
+}
+
+// ListPublishedEvents lists every PUBLISHED event across organizations for
+// the public storefront catalog (guest browsing per UI_UX_SPEC W-01).
+func (r *PostgresEventRepository) ListPublishedEvents(ctx context.Context) ([]domain.Event, error) {
+	rows, err := r.pool.Query(ctx, `
+		SELECT id, host_organization_id, slug, name, status, starts_at, ends_at, created_by
+		FROM events WHERE status = 'PUBLISHED'
+		ORDER BY starts_at DESC NULLS LAST, name ASC
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list published events: %w", err)
+	}
+	defer rows.Close()
+
+	events := make([]domain.Event, 0)
+	for rows.Next() {
+		var e domain.Event
+		if err := rows.Scan(&e.ID, &e.HostOrganizationID, &e.Slug, &e.Name, &e.Status, &e.StartsAt, &e.EndsAt, &e.CreatedBy); err != nil {
+			return nil, fmt.Errorf("failed to scan event: %w", err)
+		}
+		events = append(events, e)
+	}
+	return events, rows.Err()
 }
 
 // ListEventsByOrganization lists every event of one organization, newest first.

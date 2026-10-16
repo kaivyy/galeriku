@@ -22,6 +22,7 @@ type EventTreeUsecase interface {
 	CreateEvent(ctx context.Context, actorUserID, orgID uuid.UUID, req CreateEventRequest) (*domain.Event, error)
 	GetEventTree(ctx context.Context, eventID uuid.UUID) (*domain.EventTree, error)
 	ListEvents(ctx context.Context, orgID uuid.UUID) ([]domain.Event, error)
+	ListPublishedEvents(ctx context.Context) ([]domain.Event, error)
 	UpdateEvent(ctx context.Context, actorUserID, eventID uuid.UUID, req UpdateEventRequest) (*domain.Event, error)
 	CreateSession(ctx context.Context, actorUserID, eventID uuid.UUID, req CreateSessionRequest) (*domain.EventSession, error)
 	CreateLocation(ctx context.Context, actorUserID, eventID uuid.UUID, req CreateLocationRequest) (*domain.EventLocation, error)
@@ -150,6 +151,11 @@ func (u *eventTreeUsecase) GetEventTree(ctx context.Context, eventID uuid.UUID) 
 
 func (u *eventTreeUsecase) ListEvents(ctx context.Context, orgID uuid.UUID) ([]domain.Event, error) {
 	return u.repo.ListEventsByOrganization(ctx, orgID)
+}
+
+// ListPublishedEvents serves the public storefront catalog.
+func (u *eventTreeUsecase) ListPublishedEvents(ctx context.Context) ([]domain.Event, error) {
+	return u.repo.ListPublishedEvents(ctx)
 }
 
 func (u *eventTreeUsecase) UpdateEvent(ctx context.Context, actorUserID, eventID uuid.UUID, req UpdateEventRequest) (*domain.Event, error) {

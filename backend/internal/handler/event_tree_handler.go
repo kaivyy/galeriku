@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/galeriku/core/internal/domain"
 	"github.com/galeriku/core/internal/middleware"
 	"github.com/galeriku/core/internal/repository"
 	"github.com/galeriku/core/internal/usecase"
@@ -141,11 +142,18 @@ func (h *EventTreeHandler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 
 // ListEvents handles GET /api/v1/events for active Leaders and Admins.
 func (h *EventTreeHandler) ListEvents(w http.ResponseWriter, r *http.Request) {
-	tc, ok := h.tenantOf(w, r)
-	if !ok {
+	// Authenticated members see their organization's full catalog; guests see
+	// every PUBLISHED event (UI_UX_SPEC W-01 guest browsing).
+	if tc, ok := middleware.GetTenantContext(r.Context()); ok && tc != nil {
+		events, err := h.usecase.ListEvents(r.Context(), tc.OrganizationID)
+		if err != nil {
+			h.handleError(w, r, err)
+			return
+		}
+		h.writeSuccess(w, r, http.StatusOK, map[string]interface{}{"events": events})
 		return
 	}
-	events, err := h.usecase.ListEvents(r.Context(), tc.OrganizationID)
+	events, err := h.usecase.ListPublishedEvents(r.Context())
 	if err != nil {
 		h.handleError(w, r, err)
 		return
@@ -155,13 +163,33 @@ func (h *EventTreeHandler) ListEvents(w http.ResponseWriter, r *http.Request) {
 
 // GetEventTree handles GET /api/v1/events/{id} and returns the full FotoTree.
 func (h *EventTreeHandler) GetEventTree(w http.ResponseWriter, r *http.Request) {
-	tc, ok := h.tenantOf(w, r)
-	if !ok {
-		return
-	}
+	// Guests may read the tree of a PUBLISHED event; members with a tenant
+	// context may read any tree in their organization regardless of status.
 	eventID, err := uuid.Parse(strings.TrimSpace(r.PathValue("id")))
 	if err != nil {
 		h.writeError(w, r, http.StatusBadRequest, "INVALID_INPUT", "event id must be a valid UUID")
+		return
+	}
+
+	tc, hasTenant := middleware.GetTenantContext(r.Context())
+	if !hasTenant || tc == nil {
+		// Authenticated users without a verified tenant are still members of
+		// something; leaking nothing beats guessing, so they get 403 as before.
+		if _, authed := middleware.GetAuthIdentity(r.Context()); authed {
+			h.writeError(w, r, http.StatusForbidden, "AUTH_FORBIDDEN", "access denied: verified tenant context required")
+			return
+		}
+		// True guests may read PUBLISHED trees only; drafts 404 (no existence leak).
+		tree, pubErr := h.usecase.GetEventTree(r.Context(), eventID)
+		if pubErr != nil {
+			h.handleError(w, r, pubErr)
+			return
+		}
+		if tree.Event.Status != domain.EventStatusPublished {
+			h.writeError(w, r, http.StatusNotFound, "NOT_FOUND", "event not found")
+			return
+		}
+		h.writeSuccess(w, r, http.StatusOK, tree)
 		return
 	}
 

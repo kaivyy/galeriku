@@ -205,8 +205,10 @@ func registerFotoTreeRoutes(mux *http.ServeMux, authMw func(http.Handler) http.H
 	anyMember := middleware.RequireHostMembership(tenantRepo)
 
 	mux.Handle("POST /api/v1/events", authMw(anyMember(http.HandlerFunc(eventTreeHandler.CreateEvent))))
-	mux.Handle("GET /api/v1/events", authMw(anyMember(http.HandlerFunc(eventTreeHandler.ListEvents))))
-	mux.Handle("GET /api/v1/events/{id}", authMw(anyMember(http.HandlerFunc(eventTreeHandler.GetEventTree))))
+	// Guest browsing per UI_UX_SPEC W-01/W-02: the event catalog and its
+	// detail tree are public; only mutations require membership.
+	mux.Handle("GET /api/v1/events", http.HandlerFunc(eventTreeHandler.ListEvents))
+	mux.Handle("GET /api/v1/events/{id}", http.HandlerFunc(eventTreeHandler.GetEventTree))
 	mux.Handle("PUT /api/v1/events/{id}", authMw(anyMember(http.HandlerFunc(eventTreeHandler.UpdateEvent))))
 	mux.Handle("POST /api/v1/events/{id}/sessions", authMw(anyMember(http.HandlerFunc(eventTreeHandler.CreateSession))))
 	mux.Handle("POST /api/v1/events/{id}/locations", authMw(anyMember(http.HandlerFunc(eventTreeHandler.CreateLocation))))
