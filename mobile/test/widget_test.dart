@@ -33,7 +33,7 @@ void main() {
     expect(find.text('Cari'), findsOneWidget);
     expect(find.text('Keranjang'), findsOneWidget);
     expect(find.text('Bayar'), findsOneWidget);
-    expect(find.text('Koleksi'), findsOneWidget);
+    expect(find.text('Akun'), findsOneWidget);
 
     // Tap the Cari tab (renders the reels feed, which shows either the
     // loading spinner or the reel content while its catalog fetch resolves).

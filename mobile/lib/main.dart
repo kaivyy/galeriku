@@ -75,20 +75,96 @@ class _HomeShellState extends State<HomeShell> {
     ProfileScreen(),
   ];
 
+  static const _labels = ['Galeri', 'Cari', 'Keranjang', 'Bayar', 'Akun'];
+  static const _icons = [
+    Icons.photo_library_outlined,
+    Icons.search,
+    Icons.shopping_cart_outlined,
+    Icons.qr_code,
+    Icons.person_outline,
+  ];
+
+  bool get _isReelsTab => _index == 0 || _index == 1;
+
   @override
   Widget build(BuildContext context) {
+    final navBar = _buildNavBar();
+
+    // Reels tabs: the feed is fullscreen and the SOLID black nav bar floats
+    // over it (TikTok pattern). Other tabs keep the standard Scaffold layout.
+    if (_isReelsTab) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        extendBody: true,
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: IndexedStack(index: _index, children: _tabs),
+            ),
+            Positioned(left: 0, right: 0, bottom: 0, child: navBar),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
-      body: _tabs[_index],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.photo_library_outlined), label: 'Galeri'),
-          NavigationDestination(icon: Icon(Icons.search), label: 'Cari'),
-          NavigationDestination(icon: Icon(Icons.shopping_cart_outlined), label: 'Keranjang'),
-          NavigationDestination(icon: Icon(Icons.qr_code), label: 'Bayar'),
-          NavigationDestination(icon: Icon(Icons.collections_outlined), label: 'Koleksi'),
-        ],
+      body: IndexedStack(index: _index, children: _tabs),
+      bottomNavigationBar: navBar,
+    );
+  }
+
+  Widget _buildNavBar() {
+    return Container(
+      decoration: const BoxDecoration(color: Colors.black),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            for (var i = 0; i < _labels.length; i++)
+              _NavItem(
+                icon: _icons[i],
+                label: _labels[i],
+                active: _index == i,
+                onTap: () => setState(() => _index = i),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = active ? Colors.white : Colors.white70;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 2),
+            Text(label, style: TextStyle(fontSize: 10, color: color)),
+          ],
+        ),
       ),
     );
   }

@@ -26,9 +26,10 @@ import Base from '../layouts/Base.astro';
     bib_checkout_requires_verification: boolean;
   }
 
-  // API base: build-time override wins; runtime falls back to the host that
-  // serves this page, which is what phones on the LAN need.
-  const apiBase = import.meta.env.PUBLIC_API_BASE || `${window.location.protocol}//${window.location.hostname}:6666`;
+  // Same-origin via the Astro proxy: /api/* is forwarded to the Go server,
+  // so phones reach everything through this one port. PUBLIC_API_BASE still
+  // wins when the deployment splits web and API across hosts.
+  const apiBase = import.meta.env.PUBLIC_API_BASE || '';
   const form = document.getElementById('search-form') as HTMLFormElement | null;
   const input = document.getElementById('search-input') as HTMLInputElement | null;
   const results = document.getElementById('search-results');

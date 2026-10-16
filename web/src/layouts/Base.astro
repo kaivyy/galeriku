@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from 'astro:transitions';
 import '../styles/tokens.css';
 
 interface Props {
@@ -27,6 +28,7 @@ const navItems = [
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title} | Galeriku</title>
+    <ClientRouter />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -38,7 +40,7 @@ const navItems = [
     </script>
   </head>
   <body>
-    <header class="app-header">
+    <header class:list={["app-header", { "header-overlay": active === 'home' }]}>
       <a class="brand" href="/">Galeriku</a>
       <nav class="pill-nav" aria-label="Utama">
         {navItems.map((item) => (
@@ -57,12 +59,12 @@ const navItems = [
       </div>
     </header>
 
-    <main class="page">
+    <main class:list={["page", { "page-home": active === 'home' }]}>
       <slot />
     </main>
 
     <!-- Mobile bottom nav: same five destinations as the Flutter shell -->
-    <nav class="bottom-nav" aria-label="Navigasi utama">
+    <nav class:list={["bottom-nav", { "nav-overlay": active === 'home' }]} aria-label="Navigasi utama">
       <a href="/" class:list={[{ active: active === 'home' }]} aria-label="Beranda">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12L12 3L21 12M5 10V20H19V10"/></svg>
         <span>Beranda</span>
@@ -91,11 +93,15 @@ const navItems = [
 
     <script>
       // Header auth state: shared client logic kept tiny and framework-free.
-      const logoutBtn = document.getElementById('logout-btn');
-      logoutBtn?.addEventListener('click', () => {
-        localStorage.removeItem('galeriku_token');
-        localStorage.removeItem('galeriku_user');
-        window.location.href = '/';
+      // astro:page-load fires on first load and after every view-transition
+      // swap, so the logout listener survives client-side navigation.
+      document.addEventListener('astro:page-load', () => {
+        const logoutBtn = document.getElementById('logout-btn');
+        logoutBtn?.addEventListener('click', () => {
+          localStorage.removeItem('galeriku_token');
+          localStorage.removeItem('galeriku_user');
+          window.location.href = '/';
+        });
       });
     </script>
 
@@ -119,6 +125,14 @@ const navItems = [
         background: rgba(255, 255, 255, 0.92);
         backdrop-filter: blur(20px);
         border-bottom: 1px solid var(--color-border);
+      }
+      @media (max-width: 1023px) {
+        .app-header.header-overlay {
+          background: transparent; border-bottom: none; backdrop-filter: none;
+          position: fixed; left: 0; right: 0;
+        }
+        .app-header.header-overlay .brand { color: #FFFFFF; text-shadow: 0 1px 6px rgba(0,0,0,0.55); }
+        .app-header.header-overlay .user-chip .btn { color: #FFFFFF; border-color: rgba(255,255,255,0.7); }
       }
       .brand {
         font-family: var(--font-display); font-weight: 700; font-size: 1.25rem;
@@ -152,22 +166,32 @@ const navItems = [
       }
       .bottom-nav a.active { color: var(--color-primary); }
       .bottom-nav svg { width: 24px; height: 24px; }
+      /* Home (Reels): the media runs edge-to-edge behind a SOLID dark bar,
+         exactly like TikTok's opaque bottom bar. */
+      .bottom-nav.nav-overlay {
+        background: #000000; border-top: none;
+      }
+      .bottom-nav.nav-overlay a { color: rgba(255, 255, 255, 0.7); }
+      .bottom-nav.nav-overlay a.active { color: #FFFFFF; }
       @media (min-width: 1024px) { .bottom-nav { display: none; } }
 
       /* Mobile layout: full-bleed, no page max-width, bottom padding */
       @media (max-width: 1023px) {
         .page { max-width: none; padding: var(--space-4) var(--space-3) 96px; }
+        .page.page-home { padding: 0; }
         .app-header { padding: var(--space-2) var(--space-3); }
         .brand { font-size: 1.125rem; }
         .footer { padding-bottom: 96px; }
         .user-chip .btn { font-size: .8125rem; padding: 6px 12px; }
       }
 
-      /* TikTok-style vertical feed for photo browsing on mobile */
+      /* TikTok-style vertical feed for photo browsing on mobile.
+         Full viewport height: the nav overlays the media instead of
+         reserving layout space. */
       .feed-vertical {
         display: flex; flex-direction: column; gap: 0;
         scroll-snap-type: y mandatory; overflow-y: auto;
-        height: calc(100vh - 128px); -webkit-overflow-scrolling: touch;
+        height: 100dvh; -webkit-overflow-scrolling: touch;
       }
       .feed-card {
         position: relative; flex: 0 0 100%; aspect-ratio: 9 / 16;

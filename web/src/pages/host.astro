@@ -11,8 +11,8 @@ import Base from '../layouts/Base.astro';
 <script>
   interface HostStats { organizations: number; members: number; pending_hosts: number; }
 
-  // API base: build-time override wins; runtime falls back to this page's host.
-  const apiBase = import.meta.env.PUBLIC_API_BASE || `${window.location.protocol}//${window.location.hostname}:6666`;
+  // Same-origin via the Astro proxy (see astro.config.mjs).
+  const apiBase = import.meta.env.PUBLIC_API_BASE || '';
 
   async function loadStats(): Promise<void> {
     const el = document.getElementById('host-stats');

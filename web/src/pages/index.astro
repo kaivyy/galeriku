@@ -30,9 +30,10 @@ import Base from '../layouts/Base.astro';
     price_idr: number;
   }
 
-  // API base: build-time override wins; runtime falls back to the host that
-  // serves this page, which is what phones on the LAN need.
-  const apiBase = import.meta.env.PUBLIC_API_BASE || `${window.location.protocol}//${window.location.hostname}:6666`;
+  // Same-origin via the Astro proxy: /api/* is forwarded to the Go server,
+  // so phones reach everything through this one port. PUBLIC_API_BASE still
+  // wins when the deployment splits web and API across hosts.
+  const apiBase = import.meta.env.PUBLIC_API_BASE || '';
 
   function showToast(message: string): void {
     let toast = document.querySelector<HTMLElement>('.toast');
@@ -238,13 +239,23 @@ import Base from '../layouts/Base.astro';
     showToast('Komentar segera hadir. Like dan bagikan sudah aktif.');
   }
 
-  void loadCatalog();
+  // Re-run on astro:page-load so view transitions re-bind fresh DOM; the
+  // module-level guard prevents double listeners on the first load.
+  if (!document.dataset.galerikuFeedBound) {
+    document.dataset.galerikuFeedBound = '1';
+    document.addEventListener('astro:page-load', () => void loadCatalog());
+    void loadCatalog();
+  }
 </script>
 
 <style>
-  /* Hero hanya desktop; mobile langsung feed */
+  /* Mobile: the reels feed owns the whole screen, exactly like TikTok.
+     The section title is desktop-only chrome; the action rail lifts above
+     the floating nav, and reel text bottom-pads for the same reason. */
   @media (max-width: 1023px) {
     .hero-desktop { display: none; }
-    .feed-title { padding-top: var(--space-2); }
+    .feed-title { display: none; }
+    :global(.feed-card .actions) { bottom: 128px; }
+    :global(.feed-card .overlay) { padding-bottom: 128px; }
   }
 </style>

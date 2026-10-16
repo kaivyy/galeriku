@@ -229,7 +229,7 @@ class _ReelCard extends StatelessWidget {
           right: 0,
           bottom: 0,
           child: Container(
-            padding: const EdgeInsets.fromLTRB(16, 48, 84, 24),
+            padding: const EdgeInsets.fromLTRB(16, 48, 84, 96),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
@@ -292,7 +292,7 @@ class _ReelCard extends StatelessWidget {
         // Right action rail.
         Positioned(
           right: 8,
-          bottom: 64,
+          bottom: 96,
           child: Column(
             children: [
               _ActionRailButton(

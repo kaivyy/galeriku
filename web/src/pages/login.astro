@@ -35,9 +35,10 @@ import Base from '../layouts/Base.astro';
 </Base>
 
 <script>
-  // API base: build-time override wins; runtime falls back to the host that
-  // serves this page, which is what phones on the LAN need.
-  const apiBase = import.meta.env.PUBLIC_API_BASE || `${window.location.protocol}//${window.location.hostname}:6666`;
+  // Same-origin via the Astro proxy: /api/* is forwarded to the Go server,
+  // so phones reach everything through this one port. PUBLIC_API_BASE still
+  // wins when the deployment splits web and API across hosts.
+  const apiBase = import.meta.env.PUBLIC_API_BASE || '';
 
   const tabLogin = document.getElementById('tab-login') as HTMLButtonElement;
   const tabRegister = document.getElementById('tab-register') as HTMLButtonElement;
@@ -71,7 +72,12 @@ import Base from '../layouts/Base.astro';
   }
 
   function clearErrors(): void {
-    document.querySelectorAll('.field-error').forEach((el) => el.classList.remove('show'));
+    document.querySelectorAll('.field-error').forEach((el) => {
+      el.classList.remove('show');
+      // The registration success notice tints the text green; reset it so a
+      // later error renders in the normal danger color.
+      (el as HTMLElement).style.color = '';
+    });
   }
 
   form.addEventListener('submit', (event) => {
@@ -107,10 +113,12 @@ import Base from '../layouts/Base.astro';
     })
       .then((res) => res.json() as Promise<{
         success: boolean;
-        data?: { access_token: string; user?: { capabilities?: string[] } };
+        data?: { access_token?: string; user?: { capabilities?: string[] } };
         error?: { code: string; message: string };
       }>)
       .then((payload) => {
+        // Login returns a token; successful register returns the account and
+        // stays on the form so the user can sign in with their new password.
         if (payload.success && payload.data?.access_token) {
           localStorage.setItem('galeriku_token', payload.data.access_token);
           localStorage.setItem('galeriku_user', JSON.stringify(payload.data.user ?? {}));
@@ -122,9 +130,23 @@ import Base from '../layouts/Base.astro';
           else window.location.href = '/';
           return;
         }
+        if (payload.success) {
+          if (mode === 'register') {
+            setMode('login');
+            showError('email', 'Akun dibuat. Masuk dengan kata sandi barumu.');
+            document.getElementById('error-email')?.classList.remove('field-error');
+            const notice = document.getElementById('error-email');
+            if (notice) {
+              notice.classList.add('show');
+              notice.style.color = 'var(--color-success)';
+            }
+            return;
+          }
+        }
         const code = payload.error?.code ?? '';
         if (code === 'INVALID_CREDENTIALS') showError('password', 'Email atau kata sandi salah');
         else if (code === 'ACCOUNT_CONFLICT') showError('email', 'Email sudah terdaftar');
+        else if (code === 'INVALID_PASSWORD_COMPLEXITY') showError('password', payload.error?.message ?? 'Kata sandi terlalu lemah');
         else showError('email', payload.error?.message ?? 'Terjadi kesalahan');
       })
       .catch(() => showError('email', 'Tidak dapat terhubung ke server'))

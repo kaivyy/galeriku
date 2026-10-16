@@ -9,9 +9,10 @@ import Base from '../layouts/Base.astro';
 </Base>
 
 <script>
-  // API base: build-time override wins; runtime falls back to the host that
-  // serves this page, which is what phones on the LAN need.
-  const apiBase = import.meta.env.PUBLIC_API_BASE || `${window.location.protocol}//${window.location.hostname}:6666`;
+  // Same-origin via the Astro proxy: /api/* is forwarded to the Go server,
+  // so phones reach everything through this one port. PUBLIC_API_BASE still
+  // wins when the deployment splits web and API across hosts.
+  const apiBase = import.meta.env.PUBLIC_API_BASE || '';
 
   interface CartItemView { cart_item_id: string; photo_id: string; price_idr: number; }
   interface CartView { items: CartItemView[]; total_amount_idr: number; }

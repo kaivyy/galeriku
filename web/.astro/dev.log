@@ -81,3 +81,85 @@
 {"message":"[200] / 2ms","label":null,"level":"info"}
 {"message":"[200] / 2ms","label":null,"level":"info"}
 {"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"[200] /login/ 2ms","label":null,"level":"info"}
+{"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"[200] /login/ 2ms","label":null,"level":"info"}
+{"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"src/layouts/Base.astro","label":"watch","level":"info"}
+{"message":"[200] / 12ms","label":null,"level":"info"}
+{"message":"[200] / 6ms","label":null,"level":"info"}
+{"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"[200] /login/ 9ms","label":null,"level":"info"}
+{"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"[200] /login/ 2ms","label":null,"level":"info"}
+{"message":"[200] /search/ 9ms","label":null,"level":"info"}
+{"message":"[200] /cart/ 6ms","label":null,"level":"info"}
+{"message":"[200] /login/ 2ms","label":null,"level":"info"}
+{"message":"[200] /collection/ 10ms","label":null,"level":"info"}
+{"message":"[200] /login/ 2ms","label":null,"level":"info"}
+{"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"[200] / 4ms","label":null,"level":"info"}
+{"message":"src/layouts/Base.astro","label":"watch","level":"info"}
+{"message":"/src/pages/index.astro?astro&type=style&index=0&lang.css","label":"watch","level":"info"}
+{"message":"[200] / 12ms","label":null,"level":"info"}
+{"message":"[200] /login/ 7ms","label":null,"level":"info"}
+{"message":"[200] /collection/ 7ms","label":null,"level":"info"}
+{"message":"[200] /login/ 2ms","label":null,"level":"info"}
+{"message":"[200] /cart/ 8ms","label":null,"level":"info"}
+{"message":"[200] /login/ 2ms","label":null,"level":"info"}
+{"message":"[200] /search/ 6ms","label":null,"level":"info"}
+{"message":"[200] /cart/ 2ms","label":null,"level":"info"}
+{"message":"[200] /login/ 5ms","label":null,"level":"info"}
+{"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"[200] /login/ 2ms","label":null,"level":"info"}
+{"message":"[200] /login/ 2ms","label":null,"level":"info"}
+{"message":"[200] /login/ 2ms","label":null,"level":"info"}
+{"message":"Configuration file updated. Restarting...","label":null,"level":"info"}
+{"message":"connected.","label":"vite","level":"info"}
+{"message":"connected.","label":"vite","level":"info"}
+{"message":"Re-optimizing dependencies because vite config has changed","label":"vite","level":"info"}
+{"message":"server restarted.","label":"vite","level":"info"}
+{"message":"[200] / 45ms","label":null,"level":"info"}
+{"message":"[200] / 3ms","label":null,"level":"info"}
+{"message":"[200] / 3ms","label":null,"level":"info"}
+{"message":"[200] /search/ 14ms","label":null,"level":"info"}
+{"message":"[200] /cart/ 57ms","label":null,"level":"info"}
+{"message":"[200] /login/ 8ms","label":null,"level":"info"}
+{"message":"[200] /collection/ 9ms","label":null,"level":"info"}
+{"message":"[200] /login/ 2ms","label":null,"level":"info"}
+{"message":"[200] /login/ 4ms","label":null,"level":"info"}
+{"message":"[200] / 3ms","label":null,"level":"info"}
+{"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"[200] /login/ 3ms","label":null,"level":"info"}
+{"message":"[200] /login/ 5ms","label":null,"level":"info"}
+{"message":"src/pages/login.astro","label":"watch","level":"info"}
+{"message":"src/pages/login.astro","label":"watch","level":"info"}
+{"message":"src/layouts/Base.astro","label":"watch","level":"info"}
+{"message":"src/layouts/Base.astro","label":"watch","level":"info"}
+{"message":"src/layouts/Base.astro","label":"watch","level":"info"}
+{"message":"src/pages/index.astro","label":"watch","level":"info"}
+{"message":"[200] /login/ 15ms","label":null,"level":"info"}
+{"message":"[200] /login/ 3ms","label":null,"level":"info"}
+{"message":"dependencies optimized: astro/virtual-modules/transitions-events.js, astro/virtual-modules/transitions-router.js, astro/virtual-modules/transitions-swap-functions.js, astro/virtual-modules/transitions-types.js","label":"vite","level":"info"}
+{"message":"[200] /login/ 4ms","label":null,"level":"info"}
+{"message":"[200] /login/ 3ms","label":null,"level":"info"}
+{"message":"[200] / 10ms","label":null,"level":"info"}
+{"message":"[200] / 6ms","label":null,"level":"info"}
+{"message":"[Unhandled error] TypeError: Cannot read properties of undefined (reading 'galerikuFeedBound')\n > ../../../src/pages/index.astro?astro=&type=script&index=0&lang.ts=:191:23\n","label":"vite","level":"error"}
+{"message":"[200] / 2ms","label":null,"level":"info"}
+{"message":"[Unhandled error] TypeError: Cannot read properties of undefined (reading 'galerikuFeedBound')\n > ../../../src/pages/index.astro?astro=&type=script&index=0&lang.ts=:191:23\n","label":"vite","level":"error"}
+{"message":"[200] /login/ 2ms","label":null,"level":"info"}
+{"message":"[200] /login/ 3ms","label":null,"level":"info"}
+{"message":"[200] / 3ms","label":null,"level":"info"}
+{"message":"[200] / 3ms","label":null,"level":"info"}
