@@ -1,0 +1,9 @@
+{"message":"connected.","label":"vite","level":"info"}
+{"message":"Generated 0ms","label":"types","level":"info"}
+{"message":"connected.","label":"vite","level":"info"}
+{"message":"Re-optimizing dependencies because vite config has changed","label":"vite","level":"info"}
+{"message":" astro  v7.4.0 ready in 353 ms\n┃ Local    http://localhost:6464/\n┃ Network  http://192.168.1.44:6464/\n           http://100.78.2.86:6464/\n           http://172.17.0.1:6464/\n           http://172.21.0.1:6464/","label":"SKIP_FORMAT","level":"info"}
+{"message":"watching for file changes...","label":null,"level":"info"}
+{"message":"[200] / 47ms","label":null,"level":"info"}
+{"message":"[200] / 4ms","label":null,"level":"info"}
+{"message":"[200] / 3ms","label":null,"level":"info"}

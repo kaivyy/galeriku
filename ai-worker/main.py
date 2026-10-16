@@ -26,6 +26,7 @@ from config import WorkerConfig
 from db import JobDB
 from engines import PixelWatermarker, StubBIBReader, StubFaceExtractor
 from face_index import FaceIndex
+from health_server import record_failure, record_success, set_running, start_health_server
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [AI-WORKER] %(message)s")
 log = logging.getLogger(__name__)
@@ -157,9 +158,11 @@ def process_one(event: dict):
         db.add_result(job["id"], "WATERMARK", {"photo_id": photo_id, "preview_key": preview_key}, 1.0)
 
         db.complete_job(job["id"])
+        record_success()
         log.info("Processed photo %s for object %s", photo_id, object_key)
     except Exception:
         log.exception("Job %s failed", job["id"])
+        record_failure()
         db.fail_job(job["id"])
 
 
@@ -226,6 +229,7 @@ def poll_pending_jobs():
 
 
 _running = True
+HEALTH_PORT = int(os.getenv("HEALTH_PORT", "6161"))
 
 
 def _shutdown(signum, frame):
@@ -237,6 +241,8 @@ def _shutdown(signum, frame):
 def main():
     signal.signal(signal.SIGINT, _shutdown)
     signal.signal(signal.SIGTERM, _shutdown)
+    start_health_server(HEALTH_PORT)
+    set_running()
 
     mode = os.getenv("WORKER_MODE", "queue").lower()
     if mode == "poll":

@@ -1,0 +1,24 @@
+{
+	"pid": 419698,
+	"port": 6464,
+	"url": "http://localhost:6464",
+	"urls": {
+		"local": [
+			"http://localhost:6464/"
+		],
+		"network": [
+			"http://192.168.1.44:6464/",
+			"http://100.78.2.86:6464/",
+			"http://172.17.0.1:6464/",
+			"http://172.21.0.1:6464/"
+		],
+		"networkInterfaceNames": [
+			"eth0",
+			"tailscale0",
+			"docker0",
+			"br-f216d7c37f41"
+		]
+	},
+	"background": true,
+	"startedAt": "2026-10-16T04:39:51.198Z"
+}
