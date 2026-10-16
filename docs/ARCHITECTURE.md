@@ -31,10 +31,10 @@ flowchart TD
 
     subgraph GalerikuSystem ["Platform Galeriku"]
         mobileApp["Mobile App (Flutter Android/iOS)"]
-        webStore["Web Storefront (Next.js)"]
-        creatorStudio["Creator Studio Web (Next.js)"]
-        hostPortal["Host Management Portal (Next.js)"]
-        adminPortal["Super Admin Dashboard (Next.js)"]
+        webStore["Web Storefront (Astro + React Islands)"]
+        creatorStudio["Creator Studio Web (React SPA)"]
+        hostPortal["Host Management Portal (React SPA)"]
+        adminPortal["Super Admin Dashboard (React SPA)"]
         coreBackend["Core Platform Gateway & Backend (Go)"]
         aiWorkers["AI & Computer Vision Cluster (Python)"]
     end
@@ -70,7 +70,7 @@ Diagram kontainer menguraikan komponen perangkat lunak independen yang membentuk
 flowchart TD
     subgraph FrontendClients ["Frontend Presentation Tier"]
         flutterApp["Flutter App (iOS & Android)"]
-        nextApps["Next.js SSR/SPA (Storefront, Studio, Host, Admin)"]
+        nextApps["Astro Islands (Storefront) + React SPA (Studio, Host, Admin)"]
     end
 
     subgraph EdgeTier ["Edge & Ingress Tier"]
