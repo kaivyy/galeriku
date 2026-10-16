@@ -35,7 +35,9 @@ import Base from '../layouts/Base.astro';
 </Base>
 
 <script>
-  const apiBase = 'http://localhost:8080';
+  // API base: build-time override wins; runtime falls back to the host that
+  // serves this page, which is what phones on the LAN need.
+  const apiBase = import.meta.env.PUBLIC_API_BASE || `${window.location.protocol}//${window.location.hostname}:6666`;
 
   const tabLogin = document.getElementById('tab-login') as HTMLButtonElement;
   const tabRegister = document.getElementById('tab-register') as HTMLButtonElement;

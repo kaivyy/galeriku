@@ -366,7 +366,7 @@ func SetupRoutesWithFinance(pool *pgxpool.Pool, authHandler *AuthHandler, hostHa
 	registerDiscoveryRoutes(mux, middleware.Authenticate(jwtSecret), discoveryHandler)
 	registerPaymentRoutes(mux, middleware.Authenticate(jwtSecret), paymentHandler)
 	registerFinanceRoutes(mux, middleware.Authenticate(jwtSecret), financeHandler)
-	return middleware.CorrelationIDMiddleware(mux)
+	return middleware.CORS(middleware.CORSEnvironmentOrigins())(middleware.CorrelationIDMiddleware(mux))
 }
 
 // SetupRoutesWithPayment wires the full Phase 6 surface on top of Phase 5.

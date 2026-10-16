@@ -2,11 +2,13 @@ package config
 
 import (
 	"os"
+	"strings"
 )
 
 type Config struct {
 	AppEnv           string
 	AppPort          string
+	ApprovedOrigins []string
 	DBHost           string
 	DBPort           string
 	DBUser           string
@@ -35,6 +37,7 @@ func LoadConfig() *Config {
 	return &Config{
 		AppEnv:           getEnv("APP_ENV", "development"),
 		AppPort:          getEnv("APP_PORT", "8080"),
+		ApprovedOrigins: getSliceEnv("APPROVED_ORIGINS", []string{"*"}),
 		DBHost:           getEnv("DB_HOST", "localhost"),
 		DBPort:           getEnv("DB_PORT", "5432"),
 		DBUser:           getEnv("DB_USER", "galeriku"),
@@ -63,6 +66,23 @@ func LoadConfig() *Config {
 func getEnv(key, defaultVal string) string {
 	if val := os.Getenv(key); val != "" {
 		return val
+	}
+	return defaultVal
+}
+
+// getSliceEnv reads a comma-separated environment variable into a slice.
+func getSliceEnv(key string, defaultVal []string) []string {
+	if val := os.Getenv(key); val != "" {
+		parts := strings.Split(val, ",")
+		out := make([]string, 0, len(parts))
+		for _, p := range parts {
+			if trimmed := strings.TrimSpace(p); trimmed != "" {
+				out = append(out, trimmed)
+			}
+		}
+		if len(out) > 0 {
+			return out
+		}
 	}
 	return defaultVal
 }

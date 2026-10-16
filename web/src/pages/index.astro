@@ -24,7 +24,9 @@ import Base from '../layouts/Base.astro';
     price_idr: number;
   }
 
-  const apiBase = 'http://localhost:8080';
+  // API base: build-time override wins; runtime falls back to the host that
+  // serves this page, which is what phones on the LAN need.
+  const apiBase = import.meta.env.PUBLIC_API_BASE || `${window.location.protocol}//${window.location.hostname}:6666`;
 
   function showToast(message: string): void {
     let toast = document.querySelector<HTMLElement>('.toast');

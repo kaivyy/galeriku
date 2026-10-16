@@ -11,13 +11,16 @@ import Base from '../layouts/Base.astro';
 <script>
   interface HostStats { organizations: number; members: number; pending_hosts: number; }
 
+  // API base: build-time override wins; runtime falls back to this page's host.
+  const apiBase = import.meta.env.PUBLIC_API_BASE || `${window.location.protocol}//${window.location.hostname}:6666`;
+
   async function loadStats(): Promise<void> {
     const el = document.getElementById('host-stats');
     if (!el) return;
     const token = localStorage.getItem('galeriku_token');
     if (!token) { window.location.href = '/login/'; return; }
     try {
-      const res = await fetch('http://localhost:8080/api/v1/stats/host', {
+      const res = await fetch(`${apiBase}/api/v1/stats/host`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const payload = (await res.json()) as { success: boolean; data?: HostStats };

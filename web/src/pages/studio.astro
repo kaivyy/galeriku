@@ -19,13 +19,16 @@ import Base from '../layouts/Base.astro';
 <script>
   interface CreatorStats { photos: number; sales: number; pending_sla: number; }
 
+  // API base: build-time override wins; runtime falls back to this page's host.
+  const apiBase = import.meta.env.PUBLIC_API_BASE || `${window.location.protocol}//${window.location.hostname}:6666`;
+
   async function loadStats(): Promise<void> {
     const el = document.getElementById('studio-stats');
     if (!el) return;
     const token = localStorage.getItem('galeriku_token');
     if (!token) { window.location.href = '/login/'; return; }
     try {
-      const res = await fetch('http://localhost:8080/api/v1/stats/creator', {
+      const res = await fetch(`${apiBase}/api/v1/stats/creator`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const payload = (await res.json()) as { success: boolean; data?: CreatorStats };
