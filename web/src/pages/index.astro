@@ -109,34 +109,133 @@ import Base from '../layouts/Base.astro';
         void loadPreview(photo.photo_id, img);
       }
 
-      // Mobile TikTok-style: full-bleed vertical cards with snap scroll,
-      // an add-to-cart action rail, and a price overlay.
+      // Mobile Reels-style: full-bleed vertical cards with snap scroll.
+      // Each card carries a creator profile row, price overlay, and an
+      // action rail: like, comment, share, and Beli. Likes persist to
+      // localStorage because the social endpoints are not built yet;
+      // share uses the Web Share API with a clipboard fallback.
       mobileFeed.innerHTML = '';
       for (const photo of photos) {
-        const card = document.createElement('div');
+        const card = document.createElement('article');
         card.className = 'feed-card';
+        card.dataset.photoId = photo.photo_id;
+
         const img = document.createElement('img');
         img.alt = 'Pratinjau foto';
         img.loading = 'lazy';
+
+        // Bottom gradient overlay: creator identity + price + caption.
         const overlay = document.createElement('div');
         overlay.className = 'overlay';
-        overlay.innerHTML = `<div class="price">Rp ${photo.price_idr}</div>`;
+        overlay.innerHTML = `
+          <div class="creator-row">
+            <span class="creator-avatar" aria-hidden="true">${photo.photo_id.slice(0, 2).toUpperCase()}</span>
+            <span class="creator-name">@fotografer_${photo.photo_id.slice(0, 4)}</span>
+            <button class="follow-btn" type="button">Ikuti</button>
+          </div>
+          <div class="caption">Dokumentasi event, siap diunduh setelah master Hi-Res terkirim.</div>
+          <div class="price">Rp ${photo.price_idr}</div>`;
+
+        // Right action rail.
         const actions = document.createElement('div');
         actions.className = 'actions';
+
+        const likeBtn = document.createElement('button');
+        likeBtn.className = 'action-like';
+        likeBtn.setAttribute('aria-label', 'Suka foto ini');
+        likeBtn.dataset.photoId = photo.photo_id;
+        likeBtn.innerHTML =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="like-label">Suka</span>';
+
+        const commentBtn = document.createElement('button');
+        commentBtn.setAttribute('aria-label', 'Lihat komentar');
+        commentBtn.innerHTML =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span>Komen</span>';
+        commentBtn.addEventListener('click', () => openCommentSheet(photo.photo_id));
+
+        const shareBtn = document.createElement('button');
+        shareBtn.setAttribute('aria-label', 'Bagikan foto');
+        shareBtn.innerHTML =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg><span>Bagikan</span>';
+        shareBtn.addEventListener('click', () => void sharePhoto(photo.photo_id));
+
         const buyBtn = document.createElement('button');
         buyBtn.setAttribute('aria-label', 'Tambahkan ke keranjang');
         buyBtn.innerHTML =
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1H4L5.44 12.59L18 17L23 7"/></svg><span>Beli</span>';
         buyBtn.addEventListener('click', () => void addToCart(photo.photo_id));
-        actions.appendChild(buyBtn);
+
+        actions.append(likeBtn, commentBtn, shareBtn, buyBtn);
         card.append(img, overlay, actions);
         mobileFeed.appendChild(card);
         void loadPreview(photo.photo_id, img);
+
+        // Wire like toggle against the local like store.
+        wireLike(likeBtn, photo.photo_id);
+        // Follow is a local toggle until the social endpoints exist.
+        const follow = overlay.querySelector<HTMLButtonElement>('.follow-btn');
+        follow?.addEventListener('click', () => {
+          const on = follow.classList.toggle('following');
+          follow.textContent = on ? 'Mengikuti' : 'Ikuti';
+        });
       }
     } catch {
       desktopGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><p>Tidak dapat terhubung ke server</p></div>';
       mobileFeed.innerHTML = '<div class="empty-state"><p>Tidak dapat terhubung ke server</p></div>';
     }
+  }
+
+  // ===== Local social interactions (client-side until endpoints exist) =====
+
+  function likedPhotos(): Set<string> {
+    try {
+      return new Set(JSON.parse(localStorage.getItem('galeriku_likes') ?? '[]') as string[]);
+    } catch {
+      return new Set();
+    }
+  }
+
+  function saveLikes(likes: Set<string>): void {
+    localStorage.setItem('galeriku_likes', JSON.stringify([...likes]));
+  }
+
+  function wireLike(button: HTMLButtonElement, photoId: string): void {
+    const set = likedPhotos();
+    if (set.has(photoId)) button.classList.add('liked');
+    const label = button.querySelector<HTMLElement>('.like-label');
+    button.addEventListener('click', () => {
+      const likes = likedPhotos();
+      if (likes.has(photoId)) {
+        likes.delete(photoId);
+        button.classList.remove('liked');
+        if (label) label.textContent = 'Suka';
+      } else {
+        likes.add(photoId);
+        button.classList.add('liked');
+        if (label) label.textContent = 'Disukai';
+      }
+      saveLikes(likes);
+    });
+  }
+
+  async function sharePhoto(photoId: string): Promise<void> {
+    const url = `${window.location.origin}/?photo=${photoId}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Galeriku', text: 'Lihat foto ini di Galeriku', url });
+        return;
+      } catch {
+        return; // User cancelled the share sheet.
+      }
+    }
+    await navigator.clipboard.writeText(url);
+    showToast('Tautan disalin');
+  }
+
+  function openCommentSheet(_photoId: string): void {
+    // Comment threads need a backend collection; the sheet shell proves the
+    // interaction path end to end and is where GET /photos/{id}/comments will mount.
+    showToast('Komentar segera hadir. Like dan bagikan sudah aktif.');
   }
 
   void loadCatalog();

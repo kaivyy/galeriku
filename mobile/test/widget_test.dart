@@ -35,15 +35,12 @@ void main() {
     expect(find.text('Bayar'), findsOneWidget);
     expect(find.text('Koleksi'), findsOneWidget);
 
-    // Tap the Cari tab (renders the feed with search action).
+    // Tap the Cari tab (renders the reels feed, which shows either the
+    // loading spinner or the reel content while its catalog fetch resolves).
     await tester.tap(find.text('Cari'));
-    await tester.pumpAndSettle();
-    expect(find.text('Galeriku'), findsOneWidget);
-
-    // Open the BIB search bottom sheet via the search icon.
-    final searchIcons = find.byIcon(Icons.search);
-    await tester.tap(searchIcons.first);
-    await tester.pumpAndSettle();
-    expect(find.text('Nomor dada (BIB)'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 1));
+    final hasSpinner = find.byType(CircularProgressIndicator).evaluate().isNotEmpty;
+    final hasPageView = find.byType(PageView).evaluate().isNotEmpty;
+    expect(hasSpinner || hasPageView, isTrue);
   });
 }

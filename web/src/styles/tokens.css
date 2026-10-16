@@ -1,19 +1,20 @@
 /*
  * Galeriku Design Tokens (Astro)
- * Locked values from src/tokens/design-system.ts and UI_UX_SPEC section 11.
+ * Light theme default per product decision: white surfaces, slate text,
+ * locked brand indigo #4F46E5 and amber accent #F59E0B.
  */
 :root {
   /* Brand palette (locked) */
-  --color-bg: #0F172A;
-  --color-surface: #1E293B;
-  --color-text: #F8FAFC;
-  --color-text-muted: #94A3B8;
+  --color-bg: #FFFFFF;
+  --color-surface: #F8FAFC;
+  --color-text: #0F172A;
+  --color-text-muted: #64748B;
   --color-primary: #4F46E5;
-  --color-primary-hover: #6366F1;
+  --color-primary-hover: #4338CA;
   --color-accent: #F59E0B;
   --color-success: #10B981;
   --color-danger: #EF4444;
-  --color-border: #334155;
+  --color-border: #E2E8F0;
 
   /* Typography */
   --font-display: 'Space Grotesk', sans-serif;

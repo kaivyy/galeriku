@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 import 'src/api.dart';
 import 'src/state.dart';
 import 'screens/login_screen.dart';
-import 'screens/feed_screen.dart';
+import 'screens/reels_feed_screen.dart';
 import 'screens/qris_screen.dart';
 import 'screens/profile_screen.dart';
 
@@ -38,7 +38,7 @@ class GalerikuApp extends StatelessWidget {
           scaffoldBackgroundColor: const Color(0xFF0F172A),
           useMaterial3: true,
         ),
-        themeMode: ThemeMode.dark,
+        themeMode: ThemeMode.light,
         home: const AppGate(),
       ),
     );
@@ -68,8 +68,8 @@ class _HomeShellState extends State<HomeShell> {
   int _index = 0;
 
   static const _tabs = [
-    FeedScreen(),
-    FeedScreen(),
+    ReelsFeedScreen(),
+    ReelsFeedScreen(),
     CartTab(),
     CheckoutTab(),
     ProfileScreen(),
