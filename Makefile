@@ -34,7 +34,7 @@ test-web:
 	cd web && npm test
 
 typecheck:
-	cd web && npm run typecheck
+	cd web && npm run typecheck && npm run check
 
 lint-copy:
 	cd web && npm run lint:copy

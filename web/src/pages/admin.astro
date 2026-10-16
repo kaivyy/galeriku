@@ -1,0 +1,44 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Super Admin" active="admin">
+  <h1 class="page-title">Super Admin</h1>
+  <p class="page-subtitle">Kesehatan sistem, verifikasi host, audit kepatuhan</p>
+  <div class="card-grid" id="admin-stats" aria-live="polite"></div>
+</Base>
+
+<script>
+  interface AdminStats { users: number; pending_hosts: number; audit_logs: number; paid_orders: number; }
+
+  async function loadStats(): Promise<void> {
+    const el = document.getElementById('admin-stats');
+    if (!el) return;
+    const token = localStorage.getItem('galeriku_token');
+    if (!token) { window.location.href = '/login/'; return; }
+    try {
+      const res = await fetch('http://localhost:8080/api/v1/stats/admin', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = (await res.json()) as { success: boolean; data?: AdminStats };
+      const s = payload.data;
+      el.innerHTML = s
+        ? `
+          <div class="card"><div class="stat"><span class="label">Total Pengguna</span><span class="value">${s.users}</span></div></div>
+          <div class="card"><div class="stat"><span class="label">Host Pending</span><span class="value">${s.pending_hosts}</span></div></div>
+          <div class="card"><div class="stat"><span class="label">Audit Log</span><span class="value">${s.audit_logs}</span></div></div>
+          <div class="card"><div class="stat"><span class="label">Order Lunas</span><span class="value">${s.paid_orders}</span></div></div>`
+        : '<div class="empty-state" style="grid-column:1/-1"><p>Butuh akses SUPER_ADMIN</p></div>';
+    } catch {
+      el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><p>Tidak dapat terhubung ke server</p></div>';
+    }
+  }
+
+  void loadStats();
+</script>
+
+<style>
+  .stat { display: flex; flex-direction: column; gap: 4px; }
+  .stat .label { font-size: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-family: var(--font-display); font-size: 2rem; font-weight: 700; }
+</style>

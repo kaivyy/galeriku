@@ -1,0 +1,23 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Koleksi" active="collection">
+  <h1 class="page-title">Koleksi</h1>
+  <p class="page-subtitle">Foto yang sudah kamu beli, siap diunduh setelah pembayaran lunas</p>
+  <div id="collection-content" aria-live="polite"></div>
+</Base>
+
+<script>
+  // Order history lands here once GET /orders (list) is exposed; today the
+  // detail endpoint exists, so the page renders the paid-order guidance state.
+  const content = document.getElementById('collection-content');
+  if (content) {
+    if (!localStorage.getItem('galeriku_token')) {
+      window.location.href = '/login/';
+    } else {
+      content.innerHTML =
+        '<div class="empty-state"><div class="icon">!</div><p>Belum ada foto yang dibeli</p><a class="btn btn-primary" href="/search/">Cari Foto</a></div>';
+    }
+  }
+</script>

@@ -1,0 +1,51 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Creator Studio" active="studio">
+  <h1 class="page-title">Creator Studio</h1>
+  <p class="page-subtitle">Unggah massal hingga 2000 foto, pantau SLA 48 jam, kelola galeri</p>
+  <div class="card-grid" id="studio-stats" aria-live="polite"></div>
+  <div style="margin-top:var(--space-6)">
+    <h3 style="font-family:var(--font-display);margin-bottom:var(--space-4)">Unggah Massal</h3>
+    <div class="card" style="text-align:center;padding:var(--space-7);border-style:dashed">
+      <div style="font-size:2rem;margin-bottom:var(--space-3)">&#8593;</div>
+      <p style="color:var(--color-text-muted);margin-bottom:var(--space-4)">Alur unggah massal Direct-to-S3 (initiate, sign-part, complete, finalize) masuk lewat API</p>
+      <a class="btn btn-primary" href="/login/">Lanjutkan di Web Studio</a>
+    </div>
+  </div>
+</Base>
+
+<script>
+  interface CreatorStats { photos: number; sales: number; pending_sla: number; }
+
+  async function loadStats(): Promise<void> {
+    const el = document.getElementById('studio-stats');
+    if (!el) return;
+    const token = localStorage.getItem('galeriku_token');
+    if (!token) { window.location.href = '/login/'; return; }
+    try {
+      const res = await fetch('http://localhost:8080/api/v1/stats/creator', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = (await res.json()) as { success: boolean; data?: CreatorStats };
+      const s = payload.data;
+      el.innerHTML = s
+        ? `
+          <div class="card"><div class="stat"><span class="label">Foto</span><span class="value">${s.photos}</span></div></div>
+          <div class="card"><div class="stat"><span class="label">Penjualan</span><span class="value">${s.sales}</span></div></div>
+          <div class="card"><div class="stat"><span class="label">SLA Tertunda</span><span class="value">${s.pending_sla}</span></div></div>`
+        : '<div class="empty-state" style="grid-column:1/-1"><p>Gagal memuat statistik</p></div>';
+    } catch {
+      el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><p>Tidak dapat terhubung ke server</p></div>';
+    }
+  }
+
+  void loadStats();
+</script>
+
+<style>
+  .stat { display: flex; flex-direction: column; gap: 4px; }
+  .stat .label { font-size: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-family: var(--font-display); font-size: 2rem; font-weight: 700; }
+</style>

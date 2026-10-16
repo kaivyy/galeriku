@@ -1,0 +1,105 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Beranda" active="home">
+  <section style="text-align:center;padding: var(--space-7) 0;">
+    <h1 class="page-title" style="font-size:clamp(2rem, 6vw, 3.5rem)">Temukan Foto Maratonmu</h1>
+    <p class="page-subtitle" style="font-size:1rem;max-width:480px;margin:0 auto var(--space-5)">
+      Cari berdasarkan nomor dada, wajah, atau jelajahi FotoTree event. Beli, unduh, koleksi.
+    </p>
+    <div style="display:flex;gap:var(--space-3);justify-content:center;flex-wrap:wrap">
+      <a class="btn btn-primary" href="/search/">Cari Foto</a>
+      <a class="btn btn-ghost" href="/login/">Masuk / Daftar</a>
+    </div>
+  </section>
+
+  <h2 style="font-family:var(--font-display);font-size:1.25rem;margin-bottom:var(--space-4)">Foto Terbaru</h2>
+  <div class="photo-grid" id="home-feed"></div>
+</Base>
+
+<script>
+  interface CatalogPhoto {
+    photo_id: string;
+    price_idr: number;
+  }
+
+  const apiBase = 'http://localhost:8080';
+
+  function showToast(message: string): void {
+    let toast = document.querySelector<HTMLElement>('.toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.className = 'toast';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  async function addToCart(photoId: string): Promise<void> {
+    const token = localStorage.getItem('galeriku_token');
+    if (!token) {
+      window.location.href = '/login/';
+      return;
+    }
+    try {
+      const res = await fetch(`${apiBase}/api/v1/cart/items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ photo_id: photoId }),
+      });
+      const payload = (await res.json()) as { success: boolean; error?: { message: string } };
+      showToast(payload.success ? 'Ditambahkan ke keranjang' : (payload.error?.message ?? 'Gagal'));
+    } catch {
+      showToast('Tidak dapat terhubung ke server');
+    }
+  }
+
+  async function loadPreview(photoId: string, img: HTMLImageElement): Promise<void> {
+    try {
+      const res = await fetch(`${apiBase}/api/v1/photos/${photoId}/preview-url`);
+      const payload = (await res.json()) as { success: boolean; data?: { preview_url: string } };
+      if (payload.success && payload.data?.preview_url) {
+        img.src = payload.data.preview_url;
+      }
+    } catch {
+      // Placeholder stays visible when signing is unavailable.
+    }
+  }
+
+  async function loadCatalog(): Promise<void> {
+    const grid = document.getElementById('home-feed');
+    if (!grid) return;
+    try {
+      const res = await fetch(`${apiBase}/api/v1/photos?limit=12`);
+      const payload = (await res.json()) as { success: boolean; data?: { photos: CatalogPhoto[] } };
+      const photos = payload.data?.photos ?? [];
+      if (photos.length === 0) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><p>Belum ada foto di katalog</p></div>';
+        return;
+      }
+      grid.innerHTML = '';
+      for (const photo of photos) {
+        const item = document.createElement('button');
+        item.className = 'photo-item';
+        item.setAttribute('aria-label', `Beli foto, harga Rp ${photo.price_idr}`);
+        const img = document.createElement('img');
+        img.alt = 'Pratinjau foto';
+        img.loading = 'lazy';
+        const tag = document.createElement('span');
+        tag.className = 'price-tag';
+        tag.textContent = `Rp ${photo.price_idr}`;
+        item.append(img, tag);
+        item.addEventListener('click', () => void addToCart(photo.photo_id));
+        grid.appendChild(item);
+        void loadPreview(photo.photo_id, img);
+      }
+    } catch {
+      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><p>Tidak dapat terhubung ke server</p></div>';
+    }
+  }
+
+  void loadCatalog();
+</script>

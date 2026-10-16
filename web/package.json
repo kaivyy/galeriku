@@ -4,11 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "astro dev --port 4321",
+    "build": "astro build",
+    "check": "astro check",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint:copy": "node ./scripts/lint-copy.js"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "astro": "^7.4.0",
     "typescript": "^5.4.5",
     "vitest": "^1.6.0"
   }

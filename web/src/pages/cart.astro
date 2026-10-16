@@ -1,0 +1,100 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Keranjang" active="cart">
+  <h1 class="page-title">Keranjang</h1>
+  <p class="page-subtitle">Review pesanan sebelum checkout</p>
+  <div id="cart-content" aria-live="polite"></div>
+</Base>
+
+<script>
+  const apiBase = 'http://localhost:8080';
+
+  interface CartItemView { cart_item_id: string; photo_id: string; price_idr: number; }
+  interface CartView { items: CartItemView[]; total_amount_idr: number; }
+
+  function requireToken(): string | null {
+    return localStorage.getItem('galeriku_token');
+  }
+
+  function headers(): HeadersInit {
+    return { 'Content-Type': 'application/json', Authorization: `Bearer ${requireToken() ?? ''}` };
+  }
+
+  async function removeFromCart(itemId: string): Promise<void> {
+    await fetch(`${apiBase}/api/v1/cart/items/${itemId}`, { method: 'DELETE', headers: headers() });
+    void loadCart();
+  }
+
+  async function checkout(): Promise<void> {
+    const content = document.getElementById('cart-content');
+    if (!content) return;
+    try {
+      const cartRes = await fetch(`${apiBase}/api/v1/cart`, { headers: headers() });
+      const cart = (await cartRes.json()) as { success: boolean; data?: CartView };
+      if (!cart.data?.items.length) return;
+      const orderRes = await fetch(`${apiBase}/api/v1/orders`, {
+        method: 'POST', headers: { ...headers(), 'Idempotency-Key': crypto.randomUUID() },
+        body: JSON.stringify({ photo_ids: cart.data.items.map((i) => i.photo_id) }),
+      });
+      const order = (await orderRes.json()) as { success: boolean; data?: { order_id: string }; error?: { message: string } };
+      if (!order.success || !order.data) { alert(order.error?.message ?? 'Order gagal'); return; }
+      const payRes = await fetch(`${apiBase}/api/v1/payments/initiate`, {
+        method: 'POST', headers: headers(),
+        body: JSON.stringify({ order_id: order.data.order_id, payment_method: 'QRIS' }),
+      });
+      const pay = (await payRes.json()) as { success: boolean; data?: { qris_string?: string; amount_idr: number; provider: string } };
+      if (!pay.success || !pay.data) { alert('Payment gagal'); return; }
+      content.innerHTML = `
+        <div class="card" style="text-align:center;padding:48px">
+          <h2 style="font-family:var(--font-display);margin-bottom:16px">Scan QRIS untuk Bayar</h2>
+          <p style="color:var(--color-text-muted);margin-bottom:24px">Rp ${pay.data.amount_idr} via ${pay.data.provider}</p>
+          <div style="font-family:monospace;font-size:.625rem;word-break:break-all;background:var(--color-bg);padding:16px;border-radius:8px;margin-bottom:24px">${pay.data.qris_string ?? ''}</div>
+          <a class="btn btn-ghost" href="/collection/">Lihat Koleksi</a>
+        </div>`;
+    } catch {
+      alert('Tidak dapat terhubung ke server');
+    }
+  }
+
+  async function loadCart(): Promise<void> {
+    const content = document.getElementById('cart-content');
+    if (!content) return;
+    if (!requireToken()) { window.location.href = '/login/'; return; }
+    try {
+      const res = await fetch(`${apiBase}/api/v1/cart`, { headers: headers() });
+      const payload = (await res.json()) as { success: boolean; data?: CartView };
+      const cart = payload.data;
+      if (!cart || cart.items.length === 0) {
+        content.innerHTML = '<div class="empty-state"><div class="icon">!</div><p>Keranjang kosong</p><a class="btn btn-primary" href="/search/">Cari Foto</a></div>';
+        return;
+      }
+      content.innerHTML =
+        '<div class="card"><table class="data-table" style="width:100%;border-collapse:collapse">' +
+        '<thead><tr><th style="text-align:left;padding:12px;border-bottom:1px solid var(--color-border)">Foto</th><th style="text-align:left;padding:12px;border-bottom:1px solid var(--color-border)">Harga</th><th></th></tr></thead><tbody>' +
+        cart.items
+          .map(
+            (i) => `<tr>
+              <td style="padding:12px;border-bottom:1px solid var(--color-border)">${i.photo_id.slice(0, 8)}</td>
+              <td style="padding:12px;border-bottom:1px solid var(--color-border)">Rp ${i.price_idr}</td>
+              <td style="padding:12px;border-bottom:1px solid var(--color-border)"><button class="btn btn-ghost" style="font-size:.75rem;padding:4px 12px" data-remove="${i.cart_item_id}">Hapus</button></td>
+            </tr>`,
+          )
+          .join('') +
+        '</tbody></table>' +
+        `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px;flex-wrap:wrap;gap:12px">
+          <span style="font-family:var(--font-display);font-size:1.5rem;font-weight:700">Total: Rp ${cart.total_amount_idr}</span>
+          <button class="btn btn-primary" id="checkout-btn">Checkout QRIS</button>
+        </div></div>`;
+      content.querySelector('#checkout-btn')?.addEventListener('click', () => void checkout());
+      content.querySelectorAll('[data-remove]').forEach((btn) =>
+        btn.addEventListener('click', () => void removeFromCart((btn as HTMLElement).dataset.remove ?? '')),
+      );
+    } catch {
+      content.innerHTML = '<div class="empty-state"><p>Tidak dapat terhubung ke server</p></div>';
+    }
+  }
+
+  void loadCart();
+</script>

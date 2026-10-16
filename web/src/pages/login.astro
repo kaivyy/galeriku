@@ -1,0 +1,134 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Masuk" active="login">
+  <div style="max-width:420px;margin:var(--space-6) auto">
+    <div class="card">
+      <h1 class="page-title" style="font-size:1.5rem" id="auth-title">Masuk</h1>
+      <p class="page-subtitle" id="auth-subtitle">Selamat datang kembali di Galeriku</p>
+
+      <div style="display:flex;gap:var(--space-1);margin-bottom:var(--space-5);background:var(--color-bg);border-radius:var(--radius-full);padding:var(--space-1)">
+        <button type="button" class="btn btn-primary" id="tab-login" style="flex:1">Masuk</button>
+        <button type="button" class="btn btn-ghost" id="tab-register" style="flex:1">Daftar</button>
+      </div>
+
+      <form id="auth-form" novalidate>
+        <div class="form-field" id="field-name" style="display:none">
+          <label for="display-name">Nama Tampilan</label>
+          <input type="text" id="display-name" autocomplete="name" />
+        </div>
+        <div class="form-field">
+          <label for="auth-email">Email</label>
+          <input type="email" id="auth-email" autocomplete="email" required />
+          <div class="field-error" id="error-email" role="alert"></div>
+        </div>
+        <div class="form-field">
+          <label for="auth-password">Kata Sandi</label>
+          <input type="password" id="auth-password" autocomplete="current-password" required minlength="8" />
+          <div class="field-error" id="error-password" role="alert"></div>
+        </div>
+        <button type="submit" class="btn btn-primary" id="auth-submit" style="width:100%">Masuk</button>
+      </form>
+    </div>
+  </div>
+</Base>
+
+<script>
+  const apiBase = 'http://localhost:8080';
+
+  const tabLogin = document.getElementById('tab-login') as HTMLButtonElement;
+  const tabRegister = document.getElementById('tab-register') as HTMLButtonElement;
+  const title = document.getElementById('auth-title') as HTMLElement;
+  const subtitle = document.getElementById('auth-subtitle') as HTMLElement;
+  const submit = document.getElementById('auth-submit') as HTMLButtonElement;
+  const fieldName = document.getElementById('field-name') as HTMLElement;
+  const form = document.getElementById('auth-form') as HTMLFormElement;
+
+  let mode: 'login' | 'register' = 'login';
+
+  function setMode(next: 'login' | 'register'): void {
+    mode = next;
+    tabLogin.className = next === 'login' ? 'btn btn-primary' : 'btn btn-ghost';
+    tabRegister.className = next === 'register' ? 'btn btn-primary' : 'btn btn-ghost';
+    fieldName.style.display = next === 'register' ? 'block' : 'none';
+    title.textContent = next === 'login' ? 'Masuk' : 'Daftar';
+    subtitle.textContent = next === 'login' ? 'Selamat datang kembali di Galeriku' : 'Buat akun Galeriku baru';
+    submit.textContent = next === 'login' ? 'Masuk' : 'Daftar';
+  }
+
+  tabLogin.addEventListener('click', () => setMode('login'));
+  tabRegister.addEventListener('click', () => setMode('register'));
+
+  function showError(field: 'email' | 'password', message: string): void {
+    const el = document.getElementById(`error-${field}`);
+    if (el) {
+      el.textContent = message;
+      el.classList.add('show');
+    }
+  }
+
+  function clearErrors(): void {
+    document.querySelectorAll('.field-error').forEach((el) => el.classList.remove('show'));
+  }
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    clearErrors();
+    const emailEl = document.getElementById('auth-email') as HTMLInputElement;
+    const passwordEl = document.getElementById('auth-password') as HTMLInputElement;
+    const email = emailEl.value.trim();
+    const password = passwordEl.value;
+    if (!email) { showError('email', 'Email wajib diisi'); return; }
+    if (password.length < 8) { showError('password', 'Kata sandi minimal 8 karakter'); return; }
+
+    submit.disabled = true;
+    submit.textContent = 'Memproses...';
+
+    const endpoint = mode === 'login' ? '/api/v1/auth/login' : '/api/v1/auth/register';
+    const body =
+      mode === 'login'
+        ? { identifier: email, password }
+        : {
+            email,
+            password,
+            display_name:
+              (document.getElementById('display-name') as HTMLInputElement).value.trim() ||
+              email.split('@')[0] ||
+              'Pengguna',
+          };
+
+    fetch(`${apiBase}${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+      .then((res) => res.json() as Promise<{
+        success: boolean;
+        data?: { access_token: string; user?: { capabilities?: string[] } };
+        error?: { code: string; message: string };
+      }>)
+      .then((payload) => {
+        if (payload.success && payload.data?.access_token) {
+          localStorage.setItem('galeriku_token', payload.data.access_token);
+          localStorage.setItem('galeriku_user', JSON.stringify(payload.data.user ?? {}));
+          const caps = payload.data.user?.capabilities ?? ['BUYER'];
+          // Role-based redirect per UI_UX_SPEC section 5.
+          if (caps.includes('SUPER_ADMIN')) window.location.href = '/admin/';
+          else if (caps.includes('HOST_LEADER')) window.location.href = '/host/';
+          else if (caps.includes('CREATOR')) window.location.href = '/studio/';
+          else window.location.href = '/';
+          return;
+        }
+        const code = payload.error?.code ?? '';
+        if (code === 'INVALID_CREDENTIALS') showError('password', 'Email atau kata sandi salah');
+        else if (code === 'ACCOUNT_CONFLICT') showError('email', 'Email sudah terdaftar');
+        else showError('email', payload.error?.message ?? 'Terjadi kesalahan');
+      })
+      .catch(() => showError('email', 'Tidak dapat terhubung ke server'))
+      .finally(() => {
+        submit.disabled = false;
+        submit.textContent = mode === 'login' ? 'Masuk' : 'Daftar';
+      });
+  });
+</script>

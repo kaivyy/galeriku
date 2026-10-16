@@ -1,0 +1,79 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Cari Foto" active="search">
+  <h1 class="page-title">Cari Foto</h1>
+  <p class="page-subtitle">Masukkan nomor dada (BIB) untuk menemukan fotomu</p>
+  <form id="search-form" style="display:flex;gap:var(--space-2);margin-bottom:var(--space-5)">
+    <input
+      type="text"
+      id="search-input"
+      inputmode="numeric"
+      placeholder="Contoh: 10452"
+      aria-label="Nomor dada"
+      style="flex:1;padding:var(--space-3) var(--space-4);background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);color:var(--color-text);font-size:1rem;min-height:var(--tap-min)"
+    />
+    <button class="btn btn-primary" type="submit">Cari</button>
+  </form>
+  <div id="search-results" aria-live="polite"></div>
+</Base>
+
+<script>
+  interface PhotoHit {
+    photo_id: string;
+    price_idr: number;
+    bib_checkout_requires_verification: boolean;
+  }
+
+  const apiBase = 'http://localhost:8080';
+  const form = document.getElementById('search-form') as HTMLFormElement | null;
+  const input = document.getElementById('search-input') as HTMLInputElement | null;
+  const results = document.getElementById('search-results');
+
+  function renderEmpty(message: string): void {
+    if (results) {
+      results.innerHTML = `<div class="empty-state"><div class="icon">!</div><p>${message}</p></div>`;
+    }
+  }
+
+  form?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const bib = input?.value.trim() ?? '';
+    if (!bib || !results) return;
+
+    results.innerHTML = '<div class="card" style="text-align:center">Mencari...</div>';
+    fetch(`${apiBase}/api/v1/search/bib`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bib_number: bib }),
+    })
+      .then((res) => res.json() as Promise<{ success: boolean; data?: { photos: PhotoHit[]; total_photos: number }; error?: { message: string } }>)
+      .then((payload) => {
+        if (!payload.success || !payload.data) {
+          renderEmpty(payload.error?.message ?? 'Pencarian gagal');
+          return;
+        }
+        const photos = payload.data.photos;
+        if (photos.length === 0) {
+          renderEmpty('Belum ada foto yang cocok. Coba nomor dada lain.');
+          return;
+        }
+        results.innerHTML =
+          `<p style="color:var(--color-text-muted);margin-bottom:var(--space-4)">${payload.data.total_photos} foto ditemukan untuk BIB ${bib}</p>` +
+          '<div class="photo-grid">' +
+          photos
+            .map(
+              (p) => `
+              <div class="photo-item" data-photo="${p.photo_id}">
+                <div class="photo-placeholder">${p.photo_id.slice(0, 8)}</div>
+                <span class="price-tag">Rp ${p.price_idr}</span>
+                ${p.bib_checkout_requires_verification ? '<span style="position:absolute;top:8px;right:8px;color:var(--color-accent);font-size:.75rem">OTP</span>' : ''}
+              </div>`,
+            )
+            .join('') +
+          '</div>';
+      })
+      .catch(() => renderEmpty('Tidak dapat terhubung ke server'));
+  });
+</script>
