@@ -1,0 +1,25 @@
+name: galeriku_mobile
+description: "Galeriku photo delivery platform mobile app"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.0
+  provider: ^6.1.0
+  shared_preferences: ^2.2.0
+  image_picker: ^1.1.0
+  cached_network_image: ^3.4.0
+  google_nav_bar: ^5.0.7
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
