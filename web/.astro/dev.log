@@ -163,3 +163,4 @@
 {"message":"[200] /login/ 3ms","label":null,"level":"info"}
 {"message":"[200] / 3ms","label":null,"level":"info"}
 {"message":"[200] / 3ms","label":null,"level":"info"}
+{"message":"src/pages/index.astro","label":"watch","level":"info"}
