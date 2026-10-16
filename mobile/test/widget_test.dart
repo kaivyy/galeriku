@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:galeriku_mobile/src/api.dart';
 import 'package:galeriku_mobile/src/state.dart';
@@ -34,9 +35,15 @@ void main() {
     expect(find.text('Bayar'), findsOneWidget);
     expect(find.text('Koleksi'), findsOneWidget);
 
-    // Tap the Cari tab.
+    // Tap the Cari tab (renders the feed with search action).
     await tester.tap(find.text('Cari'));
     await tester.pumpAndSettle();
-    expect(find.text('Cari Foto (BIB)'), findsOneWidget);
+    expect(find.text('Galeriku'), findsOneWidget);
+
+    // Open the BIB search bottom sheet via the search icon.
+    final searchIcons = find.byIcon(Icons.search);
+    await tester.tap(searchIcons.first);
+    await tester.pumpAndSettle();
+    expect(find.text('Nomor dada (BIB)'), findsOneWidget);
   });
 }

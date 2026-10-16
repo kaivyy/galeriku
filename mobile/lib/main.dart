@@ -8,9 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'src/api.dart';
-import 'src/models.dart';
 import 'src/state.dart';
 import 'screens/login_screen.dart';
+import 'screens/feed_screen.dart';
+import 'screens/qris_screen.dart';
 
 void main() {
   final api = GalerikuApi(baseUrl: const String.fromEnvironment('API_BASE_URL', defaultValue: 'http://localhost:8080'));
@@ -60,8 +61,8 @@ class _HomeShellState extends State<HomeShell> {
   int _index = 0;
 
   static const _tabs = [
-    FeedTab(),
-    BibSearchTab(),
+    FeedScreen(),
+    FeedScreen(),
     CartTab(),
     CheckoutTab(),
     CollectionTab(),
@@ -81,88 +82,6 @@ class _HomeShellState extends State<HomeShell> {
           NavigationDestination(icon: Icon(Icons.qr_code), label: 'Bayar'),
           NavigationDestination(icon: Icon(Icons.collections_outlined), label: 'Koleksi'),
         ],
-      ),
-    );
-  }
-}
-
-class FeedTab extends StatelessWidget {
-  const FeedTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Galeriku')),
-      body: const Center(child: Text('GaleriGram feed', style: TextStyle(fontSize: 18))),
-    );
-  }
-}
-
-class BibSearchTab extends StatefulWidget {
-  const BibSearchTab({super.key});
-
-  @override
-  State<BibSearchTab> createState() => _BibSearchTabState();
-}
-
-class _BibSearchTabState extends State<BibSearchTab> {
-  final _controller = TextEditingController();
-  bool _searching = false;
-  BibSearchResult? _result;
-
-  Future<void> _search() async {
-    setState(() => _searching = true);
-    final api = Provider.of<AppState>(context, listen: false).api;
-    try {
-      final data = await api.searchBIB(_controller.text.trim());
-      setState(() => _result = BibSearchResult.fromJson(data));
-    } on ApiError catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
-      }
-    } finally {
-      if (mounted) setState(() => _searching = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Cari Foto (BIB)')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              controller: _controller,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Nomor dada (BIB)',
-                suffixIcon: IconButton(icon: const Icon(Icons.search), onPressed: _searching ? null : _search),
-              ),
-              onSubmitted: (_) => _search(),
-            ),
-            const SizedBox(height: 16),
-            if (_searching) const CircularProgressIndicator(),
-            if (_result != null && !_searching)
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _result!.photos.length,
-                  itemBuilder: (context, i) {
-                    final photo = _result!.photos[i];
-                    return ListTile(
-                      leading: const Icon(Icons.image_outlined),
-                      title: Text('Foto ${photo.photoId.substring(0, 8)}'),
-                      subtitle: Text('Rp ${photo.priceIdr}'),
-                      trailing: photo.bibCheckoutRequiresVerification
-                          ? const Tooltip(message: 'Perlu verifikasi OTP peserta', child: Icon(Icons.verified_user_outlined))
-                          : null,
-                    );
-                  },
-                ),
-              ),
-          ],
-        ),
       ),
     );
   }
@@ -224,53 +143,35 @@ class CartTab extends StatelessWidget {
   }
 }
 
-class CheckoutTab extends StatefulWidget {
+class CheckoutTab extends StatelessWidget {
   const CheckoutTab({super.key});
-
-  @override
-  State<CheckoutTab> createState() => _CheckoutTabState();
-}
-
-class _CheckoutTabState extends State<CheckoutTab> {
-  PaymentInitiation? _payment;
 
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
+    final cart = state.cart;
     return Scaffold(
-      appBar: AppBar(title: const Text('Bayar QRIS')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            FilledButton(
-              onPressed: () async {
-                final cart = state.cart;
-                if (cart == null || cart.items.isEmpty) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(const SnackBar(content: Text('Keranjang kosong')));
-                  }
-                  return;
-                }
-                final order = await state.createOrder(cart.items.map((e) => e.photoId).toList());
-                if (order == null) return;
-                final payment = await state.initiatePayment(order.orderId, 'QRIS');
-                if (mounted) setState(() => _payment = payment);
-              },
-              child: const Text('Bayar dengan QRIS'),
-            ),
-            const SizedBox(height: 24),
-            if (_payment != null) ...[
-              Text('Provider: ${_payment!.provider}'),
-              Text('Nominal: Rp ${_payment!.amountIdr}', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 16),
-              if (_payment!.qrisString != null)
-                SelectableText(_payment!.qrisString!, style: const TextStyle(fontFamily: 'monospace', fontSize: 12))
-              else
-                const CircularProgressIndicator(),
+      appBar: AppBar(title: const Text('Bayar')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (cart != null && cart.items.isNotEmpty) ...[
+                Text('Total: Rp ${cart.totalAmountIdr}',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
+                const SizedBox(height: 16),
+                FilledButton.icon(
+                  onPressed: () => startCheckout(context),
+                  icon: const Icon(Icons.qr_code),
+                  label: const Text('Bayar dengan QRIS'),
+                  style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+                ),
+              ] else
+                const Text('Keranjang kosong. Cari foto dulu.'),
             ],
-          ],
+          ),
         ),
       ),
     );
