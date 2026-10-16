@@ -146,6 +146,20 @@ func (s *S3Service) StreamObject(ctx context.Context, objectKey string) (*minio.
 	return s.client.GetObject(ctx, BucketMasterVault, objectKey, minio.GetObjectOptions{})
 }
 
+// PresignPreviewGet issues a short-lived presigned GET for one photo preview.
+// Only the previews/ prefix is reachable; TTL is clamped to 60 minutes per PRD.
+func (s *S3Service) PresignPreviewGet(ctx context.Context, photoID uuid.UUID, ttl time.Duration) (string, error) {
+	if ttl <= 0 || ttl > 60*time.Minute {
+		ttl = 60 * time.Minute
+	}
+	key := "previews/" + photoID.String() + ".jpg"
+	viewURL, err := s.client.PresignedGetObject(ctx, BucketMasterVault, key, ttl, url.Values{})
+	if err != nil {
+		return "", fmt.Errorf("failed to presign preview: %w", err)
+	}
+	return viewURL.String(), nil
+}
+
 // StatObject returns the size of one object in the vault, used for quota reconciliation.
 func (s *S3Service) StatObject(ctx context.Context, objectKey string) (int64, error) {
 	info, err := s.client.StatObject(ctx, BucketMasterVault, objectKey, minio.StatObjectOptions{})

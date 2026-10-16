@@ -54,6 +54,8 @@ func main() {
 	var paymentHandler *handler.PaymentHandler
 	var catalogHandler *handler.CatalogHandler
 	var financeHandler *handler.FinanceHandler
+	var previewHandler *handler.PreviewHandler
+	var statsHandler *handler.StatsHandler
 
 	if err != nil {
 		log.Printf("[GALERIKU-CORE] Warning: database pool init failed: %v", err)
@@ -117,7 +119,13 @@ func main() {
 			finalizeHandler = handler.NewBatchFinalizeHandler(
 				usecase.NewBatchFinalizeUsecase(uploadRepo, s3svc, publisher, auditSvc),
 			)
+
+			catalogRepo := repository.NewPostgresPhotoCatalogRepository(pool)
+			catalogHandler = handler.NewCatalogHandler(catalogRepo)
+			previewHandler = handler.NewPreviewHandler(catalogRepo, s3svc)
 		}
+
+		statsHandler = handler.NewStatsHandler(pool)
 
 		// The AI ingest publisher is optional: without a broker the phase 3 endpoints still
 		// work, the pending ai_jobs rows simply wait for the Phase 4 worker to pick them up.
@@ -136,14 +144,11 @@ func main() {
 		paymentRepo := repository.NewPostgresPaymentRepository(pool)
 		paymentHandler = handler.NewPaymentHandler(usecase.NewPaymentUsecase(paymentRepo, usecase.StubPaymentGateway{}, cfg.OTPSecret, cfg.S3Endpoint, nil), nil)
 
-		catalogRepo := repository.NewPostgresPhotoCatalogRepository(pool)
-		catalogHandler = handler.NewCatalogHandler(catalogRepo)
-
 		ledgerRepo := repository.NewPostgresLedgerRepository(pool)
 		financeHandler = handler.NewFinanceHandler(usecase.NewFinanceUsecase(ledgerRepo, paymentRepo, auditSvc))
 	}
 
-	router := handler.SetupRoutesWithFinance(pool, authHandler, hostHandler, membershipHandler, tenantRepo, bankHandler, invitationHandler, eventTreeHandler, uploadHandler, multipartHandler, finalizeHandler, discoveryHandler, paymentHandler, catalogHandler, financeHandler, []byte(cfg.JWTSecret))
+	router := handler.SetupRoutesWithFinance(pool, authHandler, hostHandler, membershipHandler, tenantRepo, bankHandler, invitationHandler, eventTreeHandler, uploadHandler, multipartHandler, finalizeHandler, discoveryHandler, paymentHandler, catalogHandler, financeHandler, previewHandler, statsHandler, []byte(cfg.JWTSecret))
 
 	addr := fmt.Sprintf(":%s", cfg.AppPort)
 	srv := &http.Server{Addr: addr, Handler: router}

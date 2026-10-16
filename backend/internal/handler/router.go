@@ -333,11 +333,31 @@ func registerFinanceRoutes(mux *http.ServeMux, authMw func(http.Handler) http.Ha
 	mux.Handle("POST /api/v1/finance/settlements/release", authMw(http.HandlerFunc(financeHandler.ReleaseSettlements)))
 }
 
+// registerPreviewRoutes mounts the public preview URL signing endpoint (no auth).
+func registerPreviewRoutes(mux *http.ServeMux, previewHandler *PreviewHandler) {
+	if previewHandler == nil {
+		return
+	}
+	mux.Handle("GET /api/v1/photos/{id}/preview-url", http.HandlerFunc(previewHandler.GetPreviewURL))
+}
+
+// registerStatsRoutes mounts the per-role dashboard stats endpoints.
+func registerStatsRoutes(mux *http.ServeMux, authMw func(http.Handler) http.Handler, statsHandler *StatsHandler) {
+	if statsHandler == nil {
+		return
+	}
+	mux.Handle("GET /api/v1/stats/creator", authMw(http.HandlerFunc(statsHandler.CreatorStats)))
+	mux.Handle("GET /api/v1/stats/host", authMw(http.HandlerFunc(statsHandler.HostStats)))
+	mux.Handle("GET /api/v1/stats/admin", authMw(http.HandlerFunc(statsHandler.AdminStats)))
+}
+
 // SetupRoutesWithFinance wires the full Phase 7 surface on top of Phase 6.
-func SetupRoutesWithFinance(pool *pgxpool.Pool, authHandler *AuthHandler, hostHandler *HostApplicationHandler, membershipHandler *HostMembershipHandler, tenantRepo repository.TenantRepository, bankHandler *BankAccountHandler, invitationHandler *InvitationHandler, eventTreeHandler *EventTreeHandler, uploadHandler *UploadBatchHandler, multipartHandler *MultipartUploadHandler, finalizeHandler *BatchFinalizeHandler, discoveryHandler *DiscoveryHandler, paymentHandler *PaymentHandler, catalogHandler *CatalogHandler, financeHandler *FinanceHandler, jwtSecret []byte) http.Handler {
+func SetupRoutesWithFinance(pool *pgxpool.Pool, authHandler *AuthHandler, hostHandler *HostApplicationHandler, membershipHandler *HostMembershipHandler, tenantRepo repository.TenantRepository, bankHandler *BankAccountHandler, invitationHandler *InvitationHandler, eventTreeHandler *EventTreeHandler, uploadHandler *UploadBatchHandler, multipartHandler *MultipartUploadHandler, finalizeHandler *BatchFinalizeHandler, discoveryHandler *DiscoveryHandler, paymentHandler *PaymentHandler, catalogHandler *CatalogHandler, financeHandler *FinanceHandler, previewHandler *PreviewHandler, statsHandler *StatsHandler, jwtSecret []byte) http.Handler {
 	mux := http.NewServeMux()
 	registerCoreRoutes(mux, pool, authHandler)
 	registerCatalogRoutes(mux, catalogHandler)
+	registerPreviewRoutes(mux, previewHandler)
+	registerStatsRoutes(mux, middleware.Authenticate(jwtSecret), statsHandler)
 	registerHostRoutes(mux, middleware.Authenticate(jwtSecret), hostHandler, membershipHandler, bankHandler, invitationHandler, tenantRepo)
 	registerFotoTreeRoutes(mux, middleware.Authenticate(jwtSecret), eventTreeHandler, tenantRepo)
 	registerStorageRoutes(mux, middleware.Authenticate(jwtSecret), uploadHandler, tenantRepo)
