@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Galeriku - Temukan Foto Mariannmu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Hallmark - macrostructure: Marquee Hero - tone: atmospheric - anchor hue: indigo #4F46E5
+ * brand: Galeriku - palette locked from design-system.ts
+ * genre: atmospheric (dark-first photo marketplace, athletic)
+ */
+:root {
+  /* Brand palette (locked from design-system.ts) */
+  --color-bg: #0F172A;
+  --color-surface: #1E293B;
+  --color-card: #FFFFFF;
+  --color-text: #F8FAFC;
+  --color-text-muted: #94A3B8;
+  --color-primary: #4F46E5;
+  --color-primary-hover: #6366F1;
+  --color-accent: #F59E0B;
+  --color-success: #10B981;
+  --color-danger: #EF4444;
+  --color-border: #334155;
+
+  /* Typography */
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  /* Spacing (4pt scale from LayoutMetrics) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Radius (from UI_UX_SPEC section 11) */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Elevation */
+  --shadow-1: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-2: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-3: 0 16px 48px rgba(0,0,0,0.5);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --dur-fast: 150ms;
+  --dur-normal: 300ms;
+  --dur-slow: 500ms;
+
+  /* Tap target minimum */
+  --tap-min: 44px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { overflow-x: clip; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+  overflow-x: clip;
+  min-height: 100vh;
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ===== Bottom Nav (TikTok/Instagram style, mobile-first) ===== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 64px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--color-border);
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.bottom-nav a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 500;
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  justify-content: center;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.bottom-nav a:active, .bottom-nav a.active {
+  color: var(--color-primary);
+}
+.bottom-nav svg { width: 24px; height: 24px; }
+
+/* ===== Floating Pill Top Nav (desktop) ===== */
+@media (min-width: 768px) {
+  .bottom-nav { display: none; }
+  .pill-nav {
+    position: fixed;
+    top: var(--space-4);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: var(--space-1);
+    align-items: center;
+    background: rgba(30, 41, 59, 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    padding: var(--space-1) var(--space-2);
+    z-index: 100;
+    box-shadow: var(--shadow-2);
+  }
+  .pill-nav a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-full);
+    transition: all var(--dur-fast) var(--ease-out);
+    white-space: nowrap;
+  }
+  .pill-nav a:hover, .pill-nav a.active {
+    color: var(--color-text);
+    background: var(--color-primary);
+  }
+  .pill-nav .brand {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--color-text);
+    padding-right: var(--space-4);
+    margin-right: var(--space-1);
+    border-right: 1px solid var(--color-border);
+  }
+}
+.pill-nav { display: none; }
+
+/* ===== Hero (Marquee Hero macrostructure) ===== */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+  background: radial-gradient(ellipse at 50% 30%, rgba(79, 70, 229, 0.15), transparent 60%),
+              var(--color-bg);
+}
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin-bottom: var(--space-4);
+  background: linear-gradient(135deg, var(--color-text), var(--color-primary-hover));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hero p {
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  color: var(--color-text-muted);
+  max-width: 480px;
+  margin-bottom: var(--space-6);
+}
+.hero-cta {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1rem;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--dur-fast) var(--ease-out);
+  min-height: var(--tap-min);
+  min-width: var(--tap-min);
+}
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-text);
+}
+.btn-primary:hover { background: var(--color-primary-hover); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+.btn-ghost:hover { border-color: var(--color-primary); color: var(--color-text); }
+
+/* ===== Auth Modal ===== */
+.auth-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 200;
+  padding: var(--space-4);
+}
+.auth-modal.open { display: flex; }
+.auth-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  max-width: 400px;
+  width: 100%;
+  box-shadow: var(--shadow-3);
+}
+.auth-card h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  margin-bottom: var(--space-1);
+}
+.auth-card p {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  margin-bottom: var(--space-5);
+}
+.auth-tabs {
+  display: flex;
+  gap: var(--space-1);
+  margin-bottom: var(--space-5);
+  background: var(--color-bg);
+  border-radius: var(--radius-full);
+  padding: var(--space-1);
+}
+.auth-tab {
+  flex: 1;
+  text-align: center;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  transition: all var(--dur-fast) var(--ease-out);
+  min-height: var(--tap-min);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.auth-tab.active {
+  background: var(--color-primary);
+  color: var(--color-text);
+}
+.auth-field {
+  margin-bottom: var(--space-4);
+}
+.auth-field label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+.auth-field input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: 1rem;
+  font-family: var(--font-body);
+  transition: border-color var(--dur-fast) var(--ease-out);
+  min-height: var(--tap-min);
+}
+.auth-field input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+.auth-field .error {
+  color: var(--color-danger);
+  font-size: 0.75rem;
+  margin-top: var(--space-1);
+  display: none;
+}
+.auth-field .error.show { display: block; }
+.auth-card .btn { width: 100%; margin-top: var(--space-2); }
+.auth-card .switch-text {
+  text-align: center;
+  margin-top: var(--space-4);
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+.auth-card .switch-text a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* ===== Feed Grid (TikTok/Instagram masonry) ===== */
+.feed-section {
+  padding: var(--space-6) var(--space-4);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.feed-section h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  margin-bottom: var(--space-4);
+}
+.feed-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+@media (min-width: 768px) {
+  .feed-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 1024px) {
+  .feed-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.feed-item {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: transform var(--dur-normal) var(--ease-out);
+}
+.feed-item:active { transform: scale(0.98); }
+.feed-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--color-surface), var(--color-bg));
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+.feed-item .price-tag {
+  position: absolute;
+  bottom: var(--space-2);
+  left: var(--space-2);
+  background: rgba(0, 0, 0, 0.7);
+  color: var(--color-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  backdrop-filter: blur(4px);
+}
+
+/* ===== Footer ===== */
+.footer {
+  text-align: center;
+  padding: var(--space-7) var(--space-4);
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+}
+.footer strong {
+  font-family: var(--font-display);
+  color: var(--color-text);
+}
+
+/* ===== Responsive: bottom nav safe area ===== */
+@media (max-width: 767px) {
+  .hero { min-height: 100vh; padding-bottom: 80px; }
+  .feed-section { padding-bottom: 80px; }
+  .footer { padding-bottom: 80px; }
+}
+
+/* ===== Reduced motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Desktop pill nav -->
+<nav class="pill-nav">
+  <span class="brand">Galeriku</span>
+  <a href="#" class="active">Beranda</a>
+  <a href="#" id="nav-search">Cari BIB</a>
+  <a href="#" id="nav-cart">Keranjang</a>
+  <a href="#" id="nav-login">Masuk</a>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <h1>Temukan Foto<br>Maratonmu</h1>
+  <p>Cari berdasarkan nomor dada, wajah, atau jelajahi FotoTree event. Beli, unduh, koleksi.</p>
+  <div class="hero-cta">
+    <button class="btn btn-primary" id="hero-search">Cari Foto Sekarang</button>
+    <button class="btn btn-ghost" id="hero-login">Masuk / Daftar</button>
+  </div>
+</section>
+
+<!-- Feed Grid -->
+<section class="feed-section">
+  <h2>Foto Terbaru</h2>
+  <div class="feed-grid" id="feed-grid">
+    <!-- Filled by JS -->
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <p><strong>Galeriku</strong> - Platform foto event olahraga Indonesia</p>
+</footer>
+
+<!-- Bottom nav (mobile) -->
+<nav class="bottom-nav">
+  <a href="#" class="active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12L12 3L21 12M5 10V20H19V10"/></svg>
+    Beranda
+  </a>
+  <a href="#" id="nav-search-m">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21L16.65 16.65"/></svg>
+    Cari
+  </a>
+  <a href="#" id="nav-cart-m">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1H4L5.44 12.59L18 17L23 7"/></svg>
+    Keranjang
+  </a>
+  <a href="#" id="nav-login-m">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21V19C20 16 18 14 15 14H9C6 14 4 16 4 19V21"/><circle cx="12" cy="7" r="4"/></svg>
+    Akun
+  </a>
+</nav>
+
+<!-- Auth Modal -->
+<div class="auth-modal" id="auth-modal">
+  <div class="auth-card">
+    <h2 id="auth-title">Masuk</h2>
+    <p id="auth-subtitle">Selamat datang kembali di Galeriku</p>
+    <div class="auth-tabs">
+      <div class="auth-tab active" data-tab="login">Masuk</div>
+      <div class="auth-tab" data-tab="register">Daftar</div>
+    </div>
+    <form id="auth-form">
+      <div class="auth-field" id="field-name" style="display:none">
+        <label for="display-name">Nama Tampilan</label>
+        <input type="text" id="display-name" name="display_name" autocomplete="name">
+        <div class="error" id="error-name"></div>
+      </div>
+      <div class="auth-field">
+        <label for="auth-email">Email</label>
+        <input type="email" id="auth-email" name="email" autocomplete="email" required>
+        <div class="error" id="error-email"></div>
+      </div>
+      <div class="auth-field">
+        <label for="auth-password">Kata Sandi</label>
+        <input type="password" id="auth-password" name="password" autocomplete="current-password" required>
+        <div class="error" id="error-password"></div>
+      </div>
+      <button type="submit" class="btn btn-primary" id="auth-submit">Masuk</button>
+    </form>
+    <p class="switch-text" id="switch-text">Belum punya akun? <a href="#" id="switch-link">Daftar di sini</a></p>
+  </div>
+</div>
+
+<script>
+// API base URL - configurable via build-time env or runtime override
+const API_BASE = window.GALERIKU_API_BASE || 'http://localhost:8080';
+
+// ===== State =====
+let authToken = null;
+let currentTab = 'login';
+
+// ===== Auth Modal =====
+const modal = document.getElementById('auth-modal');
+const authForm = document.getElementById('auth-form');
+const authTitle = document.getElementById('auth-title');
+const authSubtitle = document.getElementById('auth-subtitle');
+const authSubmit = document.getElementById('auth-submit');
+const fieldName = document.getElementById('field-name');
+const switchText = document.getElementById('switch-text');
+const switchLink = document.getElementById('switch-link');
+const tabs = document.querySelectorAll('.auth-tab');
+
+function openAuth(tab) {
+  modal.classList.add('open');
+  setTab(tab || currentTab);
+}
+
+function closeAuth() {
+  modal.classList.remove('open');
+}
+
+function setTab(tab) {
+  currentTab = tab;
+  tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  if (tab === 'register') {
+    authTitle.textContent = 'Daftar';
+    authSubtitle.textContent = 'Buat akun Galeriku baru';
+    authSubmit.textContent = 'Daftar';
+    fieldName.style.display = 'block';
+    switchText.innerHTML = 'Sudah punya akun? <a href="#" id="switch-link">Masuk di sini</a>';
+  } else {
+    authTitle.textContent = 'Masuk';
+    authSubtitle.textContent = 'Selamat datang kembali di Galeriku';
+    authSubmit.textContent = 'Masuk';
+    fieldName.style.display = 'none';
+    switchText.innerHTML = 'Belum punya akun? <a href="#" id="switch-link">Daftar di sini</a>';
+  }
+  // Re-bind switch link
+  document.getElementById('switch-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    setTab(currentTab === 'login' ? 'register' : 'login');
+  });
+}
+
+// Tab clicks
+tabs.forEach(t => t.addEventListener('click', () => setTab(t.dataset.tab)));
+
+// Close on backdrop
+modal.addEventListener('click', (e) => {
+  if (e.target === modal) closeAuth();
+});
+
+// Escape to close
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && modal.classList.contains('open')) closeAuth();
+});
+
+// ===== Auth Submit =====
+authForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  clearErrors();
+
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+
+  if (!email) return showError('email', 'Email wajib diisi');
+  if (!password || password.length < 8) return showError('password', 'Kata sandi minimal 8 karakter');
+
+  const submitBtn = document.getElementById('auth-submit');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Memproses...';
+
+  try {
+    const endpoint = currentTab === 'login' ? '/api/v1/auth/login' : '/api/v1/auth/register';
+    const body = currentTab === 'login'
+      ? { identifier: email, password }
+      : { email, password, display_name: document.getElementById('display-name').value.trim() || email.split('@')[0] };
+
+    const res = await fetch(API_BASE + endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+
+    if (data.success && data.data && data.data.access_token) {
+      authToken = data.data.access_token;
+      localStorage.setItem('galeriku_token', authToken);
+      closeAuth();
+      // Redirect based on capabilities
+      const caps = data.data.user?.capabilities || ['BUYER'];
+      redirectByCapability(caps);
+    } else {
+      const code = data.error?.code || 'UNKNOWN';
+      const msg = data.error?.message || 'Terjadi kesalahan';
+      if (code === 'INVALID_CREDENTIALS') {
+        showError('password', 'Email atau kata sandi salah');
+      } else if (code === 'ACCOUNT_CONFLICT') {
+        showError('email', 'Email sudah terdaftar');
+      } else {
+        showError('email', msg);
+      }
+    }
+  } catch (err) {
+    showError('email', 'Tidak dapat terhubung ke server');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = currentTab === 'login' ? 'Masuk' : 'Daftar';
+  }
+});
+
+function redirectByCapability(caps) {
+  if (caps.includes('SUPER_ADMIN')) {
+    window.location.href = '/admin';
+  } else if (caps.includes('HOST_LEADER')) {
+    window.location.href = '/host';
+  } else if (caps.includes('CREATOR')) {
+    window.location.href = '/studio';
+  } else {
+    window.location.href = '/';
+  }
+}
+
+function showError(field, msg) {
+  const el = document.getElementById('error-' + field);
+  if (el) { el.textContent = msg; el.classList.add('show'); }
+}
+
+function clearErrors() {
+  document.querySelectorAll('.error').forEach(e => e.classList.remove('show'));
+}
+
+// ===== BIB Search =====
+async function searchBIB(bib) {
+  if (!bib) return;
+  try {
+    const res = await fetch(API_BASE + '/api/v1/search/bib', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bib_number: bib }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      renderFeed(data.data.photos || []);
+    }
+  } catch (err) {
+    console.error('BIB search failed:', err);
+  }
+}
+
+function renderFeed(photos) {
+  const grid = document.getElementById('feed-grid');
+  grid.innerHTML = '';
+  if (photos.length === 0) {
+    grid.innerHTML = '<p style="color:var(--color-text-muted);grid-column:1/-1;text-align:center">Belum ada foto. Coba nomor dada lain.</p>';
+    return;
+  }
+  photos.forEach(photo => {
+    const item = document.createElement('div');
+    item.className = 'feed-item';
+    item.innerHTML = `
+      <div class="feed-placeholder">Foto ${photo.photo_id?.substring(0, 8) || ''}</div>
+      <span class="price-tag">Rp ${photo.price_idr || 0}</span>
+    `;
+    grid.appendChild(item);
+  });
+}
+
+// ===== Init: load token, render placeholder feed =====
+(function init() {
+  const saved = localStorage.getItem('galeriku_token');
+  if (saved) authToken = saved;
+
+  // Render placeholder feed
+  const placeholders = [];
+  for (let i = 0; i < 8; i++) {
+    placeholders.push({ photo_id: 'preview-' + i, price_idr: 45000 });
+  }
+  renderFeed(placeholders);
+
+  // Wire up buttons
+  const loginBtns = ['hero-login', 'nav-login', 'nav-login-m'];
+  loginBtns.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', (e) => { e.preventDefault(); openAuth('login'); });
+  });
+
+  const searchBtns = ['hero-search', 'nav-search', 'nav-search-m'];
+  searchBtns.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', (e) => {
+      e.preventDefault();
+      const bib = prompt('Masukkan nomor dada (BIB):');
+      if (bib) searchBIB(bib);
+    });
+  });
+
+  const cartBtns = ['nav-cart', 'nav-cart-m'];
+  cartBtns.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (!authToken) { openAuth('login'); return; }
+      window.location.href = '/cart';
+    });
+  });
+})();
+</script>
+</body>
+</html>

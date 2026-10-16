@@ -19,6 +19,13 @@ class AppState extends ChangeNotifier {
   bool get loading => _loading;
   String? get error => _error;
 
+  /// Test helper: set the token without going through the login flow.
+  void setTokenForTest(String token) {
+    _token = token;
+    api.setAccessToken(token);
+    notifyListeners();
+  }
+
   void _setLoading(bool v) { _loading = v; notifyListeners(); }
   void _setError(String? e) { _error = e; notifyListeners(); }
 

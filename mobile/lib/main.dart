@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'src/api.dart';
 import 'src/models.dart';
 import 'src/state.dart';
+import 'screens/login_screen.dart';
 
 void main() {
   final api = GalerikuApi(baseUrl: const String.fromEnvironment('API_BASE_URL', defaultValue: 'http://localhost:8080'));
@@ -18,20 +19,33 @@ void main() {
 
 class GalerikuApp extends StatelessWidget {
   final GalerikuApi api;
+  final AppState? authOverride;
 
-  const GalerikuApp({super.key, required this.api});
+  const GalerikuApp({super.key, required this.api, this.authOverride});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => AppState(api: api),
+      create: (_) => authOverride ?? AppState(api: api),
       child: MaterialApp(
         title: 'Galeriku',
         theme: ThemeData(colorSchemeSeed: const Color(0xFF1B5E20), useMaterial3: true),
         darkTheme: ThemeData(colorSchemeSeed: const Color(0xFF1B5E20), brightness: Brightness.dark, useMaterial3: true),
-        home: const HomeShell(),
+        home: const AppGate(),
       ),
     );
+  }
+}
+
+/// Shows login when no token, home shell when logged in.
+class AppGate extends StatelessWidget {
+  const AppGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.watch<AppState>();
+    if (state.token == null) return const LoginScreen();
+    return const HomeShell();
   }
 }
 
@@ -269,9 +283,18 @@ class CollectionTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
-    if (state.token == null) {
-      return const Center(child: Text('Masuk untuk melihat koleksi'));
-    }
-    return const Center(child: Text('Koleksi foto yang dibeli'));
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Koleksi'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Keluar',
+            onPressed: () => state.logout(),
+          ),
+        ],
+      ),
+      body: const Center(child: Text('Koleksi foto yang dibeli')),
+    );
   }
 }
